@@ -1,7 +1,7 @@
 vcl 4.1;
 
 backend default {
-    .host = "host.docker.internal";
+    .host = "imgstream-elysia1";
     .port = "3001";
 }
 
