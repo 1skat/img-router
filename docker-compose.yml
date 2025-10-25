@@ -1,4 +1,3 @@
-
 services:
 
   nginx:
@@ -17,6 +16,8 @@ services:
 
   varnish1:
     image: varnish:latest
+    container_name: imgstream-varnish1
+
     ports:
       - "6081:6081" # my port : port inside container (Varnish default port)
       - "6082:6082" # Varnish admin port
@@ -32,8 +33,9 @@ services:
     restart: unless-stopped
 
   elysia1:
-    build: .
-    container_name: img-stream-elysia1
+    build: ./elysia1
+    container_name: imgstream-elysia1
+
     environment:
       - NODE_ENV=production
       - PORT=3001

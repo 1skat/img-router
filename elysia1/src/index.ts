@@ -9,7 +9,6 @@ import { TransformationResolver } from './resolver_v1/resolver';
 import { buildSharpTransformerV2 } from './build_transform';
 import { TranformationParser } from './url_parser';
 import { tryCatch } from '@/utils/try-catch';
-import { pipeline } from 'stream/promises'
 
 
 const s3 = new S3Client({
