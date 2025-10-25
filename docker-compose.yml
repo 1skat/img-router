@@ -18,6 +18,11 @@ services:
     image: varnish:latest
     container_name: imgstream-varnish1
 
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
     ports:
       - "6081:6081" # my port : port inside container (Varnish default port)
       - "6082:6082" # Varnish admin port
