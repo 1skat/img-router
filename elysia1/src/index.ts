@@ -132,10 +132,12 @@ app.get("/*", async (c) => {
         c.set.status = 200;
 
         const memBefore = process.memoryUsage();
+        const before = performance.now();
         const outBuffer = await sharpInstance.toBuffer();
+        const after = performance.now();
         const memAfter = process.memoryUsage();
 
-        console.log("External:", ((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2), "MB");
+        console.log("External:", ((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2), "MB", `in ${(after-before)/1000}s`);
         return outBuffer;
 
     } catch (err) {
