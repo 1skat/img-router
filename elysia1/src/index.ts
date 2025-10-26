@@ -9,6 +9,7 @@ import { TransformationResolver } from './resolver_v1/resolver';
 import { buildSharpTransformerV2 } from './build_transform';
 import { TranformationParser } from './url_parser';
 import { tryCatch } from '@/utils/try-catch';
+import 'dotenv/config';
 
 
 const s3 = new S3Client({
@@ -95,8 +96,10 @@ app.get("/*", async (c) => {
         const imgStream = s3Response.Body;
         if (!imgStream) return (c.set.status = 404, { error: "Not found" });
 
+        console.time("load to buffer")
         const buf = await imgStream.transformToByteArray();
-        console.log((buf.length / 1024 / 1024).toFixed(2));
+        console.timeEnd("load to buffer");
+
         let sharpInstance = sharp(buf);
 
         const imgMetadata = await sharpInstance.metadata();
@@ -117,9 +120,7 @@ app.get("/*", async (c) => {
         };
 
         const parsedInputChains = trString ? new TranformationParser().parseTransformationString(trString) : null;
-        console.log("parsed:", parsedInputChains);
         const normalizedTransformChains = new TransformationResolver(imgMetadata, userSettings).resolve(parsedInputChains);
-        console.log("normalized", normalizedTransformChains);
         const transformers = buildSharpTransformerV2(normalizedTransformChains);
 
         for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
@@ -130,7 +131,12 @@ app.get("/*", async (c) => {
         };
         c.set.status = 200;
 
-        return sharpInstance;
+        const memBefore = process.memoryUsage();
+        const outBuffer = await sharpInstance.toBuffer();
+        const memAfter = process.memoryUsage();
+
+        console.log("External:", ((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2), "MB");
+        return outBuffer;
 
     } catch (err) {
         console.error("file_handler:", err);

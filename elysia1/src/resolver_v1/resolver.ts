@@ -148,7 +148,6 @@ export class TransformationResolver {
         if (ar) this.applyAspectRatio(content, ar);
 
         this.addOrMerge("resize", content);
-        console.log("before zoom:", content);
         this.state.applyResize({ width: content.width, height: content.height });
 
         if (z) this.applyZoom(z);

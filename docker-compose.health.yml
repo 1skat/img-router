@@ -1,0 +1,13 @@
+services:
+  app:
+    container_name: bun-server
+    build: ./elysia1
+    ports:
+      - "3001:3001"
+
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntop
+    network_mode: "host"
+    ports:
+      - "3000:3000"
