@@ -79,6 +79,7 @@ export type UserImageSettings = {
 
 const app = new Elysia();
 
+let connJobs = 0;
 app.get("/*", async (c) => {
     const rawUserPath = c.params["*"];
     const normalizedPath = path.posix.normalize(slash(rawUserPath.trim()));
@@ -90,6 +91,8 @@ app.get("/*", async (c) => {
     console.log(`userID: ${userID}, tr: ${trString}, assetPath: ${assetPath}\n`);
 
     if (!assetPath) throw new Error("Path required");
+    connJobs++
+    console.log("CURRENT JOBS", connJobs)
 
     try {
         const s3Response = await s3.send(new GetObjectCommand({ Bucket: "is-bucket", Key: `${userID}/${assetPath}` }));
@@ -131,20 +134,19 @@ app.get("/*", async (c) => {
         };
         c.set.status = 200;
 
-        const memBefore = process.memoryUsage();
-        const before = performance.now();
         const outBuffer = await sharpInstance.toBuffer();
-        const after = performance.now();
-        const memAfter = process.memoryUsage();
 
-        console.log("External:", ((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2), "MB", `in ${(after-before)/1000}s`);
+
         return outBuffer;
 
     } catch (err) {
         console.error("file_handler:", err);
         c.set.status = 404;
         return { error: (err as Error).message ?? err };
-    }
+    } finally {
+        connJobs--
+        console.log("REMAINING JOBS:", connJobs);
+    };
 });
 
 app.listen(3001);
