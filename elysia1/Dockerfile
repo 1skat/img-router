@@ -13,11 +13,10 @@ COPY src ./src
 
 RUN bun install
 
-ENV LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2
-
 EXPOSE 3001 
 
-CMD ["bun", "start"]
+CMD ["sh", "-c", "ARCH=${uname -m}; export LD_PRELOAD=/usr/lib/${ARCH}-linux-gnu/libjemalloc.so.2; bun start;"]
+
 
 
 

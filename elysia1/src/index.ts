@@ -136,7 +136,6 @@ app.get("/*", async (c) => {
 
         const outBuffer = await sharpInstance.toBuffer();
 
-
         return outBuffer;
 
     } catch (err) {
