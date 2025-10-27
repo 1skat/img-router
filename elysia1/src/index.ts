@@ -1,4 +1,3 @@
-import { createReadStream, createWriteStream } from 'fs';
 import { Elysia } from 'elysia';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
@@ -9,15 +8,16 @@ import { TransformationResolver } from './resolver_v1/resolver';
 import { buildSharpTransformerV2 } from './build_transform';
 import { TranformationParser } from './url_parser';
 import { tryCatch } from '@/utils/try-catch';
-import 'dotenv/config';
 
+console.log(Bun.env.YC_ACCESS_KEY_ID);
+console.log(Bun.env.YC_SECRET_ACCESS_KEY);
 
 const s3 = new S3Client({
     endpoint: "https://storage.yandexcloud.net",
     region: "ru-central1",
     credentials: {
-        accessKeyId: process.env.YC_ACCESS_KEY_ID,
-        secretAccessKey: process.env.YC_SECRET_ACCESS_KEY,
+        accessKeyId: Bun.env.YC_ACCESS_KEY_ID,
+        secretAccessKey: Bun.env.YC_SECRET_ACCESS_KEY,
     },
 });
 
@@ -79,6 +79,7 @@ export type UserImageSettings = {
 
 const app = new Elysia();
 
+let totalJobs = 0;
 let connJobs = 0;
 app.get("/*", async (c) => {
     const rawUserPath = c.params["*"];
@@ -91,6 +92,7 @@ app.get("/*", async (c) => {
     console.log(`userID: ${userID}, tr: ${trString}, assetPath: ${assetPath}\n`);
 
     if (!assetPath) throw new Error("Path required");
+    totalJobs++
     connJobs++
     console.log("CURRENT JOBS", connJobs)
 
@@ -99,9 +101,7 @@ app.get("/*", async (c) => {
         const imgStream = s3Response.Body;
         if (!imgStream) return (c.set.status = 404, { error: "Not found" });
 
-        console.time("load to buffer")
         const buf = await imgStream.transformToByteArray();
-        console.timeEnd("load to buffer");
 
         let sharpInstance = sharp(buf);
 
@@ -145,7 +145,7 @@ app.get("/*", async (c) => {
         return { error: (err as Error).message ?? err };
     } finally {
         connJobs--
-        console.log("REMAINING JOBS:", connJobs);
+        console.log(`REMAINING JOBS:${connJobs} TOTAL: ${totalJobs}`);
     };
 });
 
