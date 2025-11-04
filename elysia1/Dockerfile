@@ -15,7 +15,7 @@ RUN bun install
 
 EXPOSE 3001 
 
-CMD ["sh", "-c", "ARCH=${uname -m}; export LD_PRELOAD=/usr/lib/${ARCH}-linux-gnu/libjemalloc.so.2; bun start;"]
+CMD ["sh", "-c", "ARCH=$(uname -m); export LD_PRELOAD=/usr/lib/$ARCH-linux-gnu/libjemalloc.so.2; bun start"]
 
 
 

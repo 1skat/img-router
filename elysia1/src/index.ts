@@ -113,7 +113,12 @@ app.get("/*", async (c) => {
         /* FROM DB */
 
         const userDeviceSupportedFormats = c.headers["accept"] ?? "";
-        console.log(userDeviceSupportedFormats);
+        const requiredWidth = c.headers["sec-ch-width"] ?? "";
+        const dpr = c.headers["sec-ch-dpr"] ?? "";
+        const viewportWidth = c.headers["viewport-width"] ?? "";
+        const connectionType = c.headers.ect;
+        const downloadBandwith = parseFloat(c.headers.downlink ?? "")
+        console.log(c.headers);
 
         const userSettings = {
             encoding: {
@@ -129,8 +134,8 @@ app.get("/*", async (c) => {
         for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 
         c.set.headers = {
-            "Content-Type": "image/webp",
-            "Cache-Control": "public, max-age=3600"
+            "Content-Type": "image/png",
+            // "Cache-Control": "public, max-age=3600"
         };
         c.set.status = 200;
 
