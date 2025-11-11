@@ -6,8 +6,10 @@ services:
     ports:
       - "443:443"
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ${SSL_CERT_PATH}:/etc/nginx/certs/fullchain.pem:ro
+      - ${SSL_KEY_PATH}:/etc/nginx/certs/key.pem:ro
+      - ${NGINX_CONF}:/etc/nginx/nginx.conf:ro
     depends_on:
       - varnish1
     networks:
@@ -17,12 +19,11 @@ services:
   varnish1:
     image: varnish:latest
     container_name: imgstream-varnish1
-
     ports:
-      - "6081:6081" # my port : port inside container (Varnish default port)
-      - "6082:6082" # Varnish admin port
+      - "6081:6081"
+      - "6082:6082"
     volumes:
-      - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
+      - ${VARNISH_VCL}:/etc/varnish/default.vcl:ro
     command: [ "varnishd", "-F", "-f", "/etc/varnish/default.vcl", "-s", "malloc,256m", "-a", ":6081" ]
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -33,15 +34,21 @@ services:
     restart: unless-stopped
 
   elysia1:
-    build: ./elysia1
+    build: ./server
     container_name: imgstream-elysia1
+    env_file:
+      - .env
+    networks:
+      - imgstream-network
+    restart: unless-stopped
 
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - YC_ACCESS_KEY_ID=${YC_ACCESS_KEY_ID}
-      - YC_SECRET_ACCESS_KEY=${YC_SECRET_ACCESS_KEY}
-    # connect to container to a shared Docker network
+  redis:
+    image: redis:7
+    container_name: imgstream-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - imgstream-network
     restart: unless-stopped
@@ -49,3 +56,6 @@ services:
 networks:
   imgstream-network:
     driver: bridge
+
+volumes:
+  redis-data:

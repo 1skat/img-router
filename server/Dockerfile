@@ -3,7 +3,7 @@ FROM oven/bun:debian
 
 WORKDIR /app
 
-# Install jemalloc
+# Install jemalloc (better memeory managment for libvips)
 RUN apt-get update && apt-get install -y libjemalloc2 && \
     rm -rf /var/lib/apt/lists/*
 
