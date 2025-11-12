@@ -15,7 +15,7 @@ const s3 = new S3Client({
     },
 });
 
-export const imageHandler = new Elysia({ prefix: "/images" })
+export const imageRoutes = new Elysia({ prefix: "/images" })
     .get("/*", async (c) => {
         const rawUserPath = c.params["*"];
         const normalizedPath = path.posix.normalize(slash(rawUserPath.trim()));
@@ -52,6 +52,7 @@ export const imageHandler = new Elysia({ prefix: "/images" })
             const viewportWidth = c.headers["viewport-width"] ?? "";
             const connectionType = c.headers.ect;
             const downloadBandwith = parseFloat(c.headers.downlink ?? "")
+            return
 
             const userSettings = {
                 encoding: {

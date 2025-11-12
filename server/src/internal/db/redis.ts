@@ -1,7 +1,7 @@
-import { RedisClient } from "bun";
 import { RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "@/internal/db/schema";
 import { generateAccountId, generateApiKey } from "@/internal/auth/auth";
 import { tryCatchAsync } from "@/utils/try-catch";
+import { RedisClient } from "bun";
 
 const rdClient = new RedisClient("redis://redis:6379");
 
@@ -53,6 +53,11 @@ export async function createAccount(apiKey: string) {
     await rdClient.hset(`account:${newAccountId}:settings`, defaultSettings);
 
     return newAccountId;
+};
+
+export async function proveOwnership(apiKey: string, accountId: string): Promise<boolean> {
+    const { accountIds } = await verifyApiKey(apiKey);
+    return accountIds.includes(accountId);
 };
 
 export async function getAccountSettings(accountId: string) {
