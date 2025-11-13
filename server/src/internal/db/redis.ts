@@ -1,9 +1,9 @@
-import { RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "@/internal/db/schema";
+import { AccountSettingsSchema, RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "@/internal/db/schema";
 import { generateAccountId, generateApiKey } from "@/internal/auth/auth";
 import { tryCatchAsync } from "@/utils/try-catch";
 import { RedisClient } from "bun";
 
-const rdClient = new RedisClient("redis://redis:6379");
+const rdClient = new RedisClient("redis://localhost:6379");
 
 export async function connectRedis() {
     try {
@@ -20,11 +20,12 @@ export async function createApiKey(name?: string) {
 
     await rdClient.hset(`apiKey:${apiKey}`, {
         name: name ?? "anon",
-        createAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         accountIds: JSON.stringify([accountId]),
     });
 
     const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
+
     await rdClient.hset(`account:${accountId}:settings`, defaultSettings);
 
     return { apiKey, accountId };
@@ -65,8 +66,9 @@ export async function getAccountSettings(accountId: string) {
 
     const data = await rdClient.hgetall(`account:${accountId}:settings`);
     if (!data || Object.keys(data).length === 0) throw new Error(`failed to get account settings: ${accountId}`);
+    console.log(`data: ${JSON.stringify(data)}`);
 
-    const parsed = RedisAccountSettingsSchema.safeParse(data);
+    const parsed = AccountSettingsSchema.safeParse(data);
     if (!parsed.success) throw new Error(`Received invalid settings`);
 
     return parsed.data;
@@ -75,7 +77,7 @@ export async function getAccountSettings(accountId: string) {
 export async function updateAccountSettings(accountId: string, settings: AccountSettings) {
     if (!accountId) throw new Error("account id required");
 
-    const parsed = RedisAccountSettingsSchema.safeParse(settings);
+    const parsed = RedisAccountSettingsSchema.safeParse(settings); // validated raw, converted to string
     if (!parsed.success) throw new Error(`Invalid settings: ${JSON.stringify(settings)}`);
 
     const validatedSettings = parsed.data;
