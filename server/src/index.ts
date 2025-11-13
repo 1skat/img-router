@@ -32,12 +32,10 @@ export type UserImageSettings = {
     }
 };
 
-// await connectRedis();
+await connectRedis();
 const app = new Elysia()
     .use(keyRoutes)
     .use(accountRoutes)
     .listen(3001);
 
-
-// app.listen(3001);
 console.log("server is running on port 3001");
