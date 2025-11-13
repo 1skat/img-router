@@ -1,4 +1,3 @@
-import { option } from "@coral-xyz/borsh";
 import sharp from "sharp";
 
 type ImgStateFields = {
@@ -7,7 +6,7 @@ type ImgStateFields = {
     format: string;
 };
 
-export class ImgStateV2 {
+export class ImgState {
     private _state: ImgStateFields;
     constructor(s: ImgStateFields) {
         this._state = { ...s };
@@ -30,13 +29,13 @@ export class ImgStateV2 {
 }
 
 export class TransformationResolver {
-    state: ImgStateV2;
+    state: ImgState;
     userSettings: any;
     params: any;
     instructions: any;
 
     constructor(meta: sharp.Metadata, userSettings?: any) {
-        this.state = new ImgStateV2({
+        this.state = new ImgState({
             width: meta.width ?? 0,
             height: meta.height ?? 0,
             format: meta.format ?? "",

@@ -4,8 +4,10 @@ import path from "path";
 import { tryCatch, tryCatchAsync } from "@/utils/try-catch";
 import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getAccountSettings } from "../db/redis";
 import sharp from "sharp";
+import { getAccountSettings } from "@/internal/db/redis";
+import { ParameterParser } from "@/img_processor/parser/param_parser";
+import { TransformationResolver } from "@/img_processor/resolver/resolver";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -15,17 +17,18 @@ const s3 = new S3Client({
     },
 });
 
-export const imageRoutes = new Elysia({ prefix: "/images" })
-    .get("/*", async (c) => {
-        const rawUserPath = c.params["*"];
+export const imageRoutes = new Elysia()
+    .get("/*", async ({ headers, params, set }) => {
+        const rawUserPath = params["*"];
         const normalizedPath = path.posix.normalize(slash(rawUserPath.trim()));
         const [res, parseErr] = tryCatch(parsePath(normalizedPath));
 
         if (parseErr) throw new Error(parseErr.message);
 
-        const { accountID, trString, assetPath } = res;
+        const { accountId, trString, assetPath } = res;
         const bucketName = Bun.env.S3_BUCKET_NAME;
-        console.log(`accountID: ${accountID}, tr: ${trString}, assetPath: ${assetPath}\n`);
+        console.log(bucketName);
+        console.log(`accountId: ${accountId}, tr: ${trString}, assetPath: ${assetPath}\n`);
 
         if (!assetPath) throw new Error("Path required");
         if (!bucketName) throw new Error("Bucket name required");
@@ -33,53 +36,56 @@ export const imageRoutes = new Elysia({ prefix: "/images" })
         try {
             const s3Response = await s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath }));
             const imgStream = s3Response.Body;
-            if (!imgStream) return (c.set.status = 404, { error: "Not found" });
+            if (!imgStream) {
+                set.status = 404;
+                return { error: "S3: failed to get image" };
+            };
 
-            const [accountSettings, accSettingsErr] = await tryCatchAsync(getAccountSettings(accountID))
+            // Client hints:
+            const userDeviceSupportedFormats = headers["accept"] ?? "";
+
+            // Account settings
+            const [accSettings, accSettingsErr] = await tryCatchAsync(getAccountSettings(accountId))
             if (accSettingsErr) {
-                console.error(accSettingsErr.message);
-                return;
+                set.status = 404;
+                return { error: accSettingsErr.message };
+            };
+
+            const { useBestFormat, defaultQuality, dataSaveMode } = accSettings;
+            const userSettings = {
+                encoding: {
+                    format: useBestFormat ? (userDeviceSupportedFormats) : undefined,
+                    quality: defaultQuality,
+                },
             };
 
             const buf = await imgStream.transformToByteArray();
             let sharpInstance = sharp(buf);
             const imgMetadata = await sharpInstance.metadata();
 
+            // 1: prase parameter transformations
+            const parsedParamChains = trString ? new ParameterParser().parseParams(trString) : null;
+            console.log(`parsed params: ${parsedParamChains}`);
 
-            const userDeviceSupportedFormats = c.headers["accept"] ?? "";
-            const requiredWidth = c.headers["sec-ch-width"] ?? "";
-            const dpr = c.headers["sec-ch-dpr"] ?? "";
-            const viewportWidth = c.headers["viewport-width"] ?? "";
-            const connectionType = c.headers.ect;
-            const downloadBandwith = parseFloat(c.headers.downlink ?? "")
-            return
+            // // 2: build transformation instruction
+            // const normalizedTransformChains = new TransformationResolver(imgMetadata, userSettings).resolve(parsedParamChains)
+            // const transformers = buildSharpTransformerV2(normalizedTransformChains);
 
-            const userSettings = {
-                encoding: {
-                    format: userAutocompression ? getBestFormat(userDeviceSupportedFormats) : undefined,
-                    quality: userQuality ?? DEFAULT_IMG_QUALITY,
-                },
-            };
+            // for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 
-            const parsedInputChains = trString ? new TranformationParser().parseTransformationString(trString) : null;
-            const normalizedTransformChains = new TransformationResolver(imgMetadata, userSettings).resolve(parsedInputChains);
-            const transformers = buildSharpTransformerV2(normalizedTransformChains);
+            // c.set.headers = {
+            //     "Content-Type": "image/png",
+            //     // "Cache-Control": "public, max-age=3600"
+            // };
+            // c.set.status = 200;
 
-            for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
+            // const outBuffer = await sharpInstance.toBuffer();
 
-            c.set.headers = {
-                "Content-Type": "image/png",
-                // "Cache-Control": "public, max-age=3600"
-            };
-            c.set.status = 200;
-
-            const outBuffer = await sharpInstance.toBuffer();
-
-            return outBuffer;
+            // return outBuffer;
 
         } catch (err) {
             console.error("file_handler:", err);
-            c.set.status = 404;
+            set.status = 404;
             return { error: (err as Error).message ?? err };
         }
     });

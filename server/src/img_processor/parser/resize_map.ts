@@ -39,7 +39,7 @@ function aspectRationImaegHandler(val: string) {
     const wRatio = w ? parseInt(w, 10) : undefined;
     const hRatio = h ? parseInt(h, 10) : undefined;
 
-    if (!wRatio || !hRatio) throw new Error("invalid ration params");
+    if (!wRatio || !hRatio) throw new Error("invalid aspect ratio params");
 
     out.wRatio = wRatio;
     out.hRatio = hRatio;
@@ -138,10 +138,11 @@ function extractImageHandler(val: string) {
     return out;
 };
 
-function fitImageHandler(val: string, kwargs?: Record<string, any>) { // e.g prt
+function fitImageHandler(val: string) { // e.g prt. Padding right top
     if (!val) throw new Error("fit_image_handler: parameter required after `fit`");
 
-    const match = val.match(/^(p|in|out|fill)(.*)$/)
+    const match = val.match(/^(?:(p)(rt|lt|rb|lb|t|r|b|l)?|(in|out|fill))$/); // e.g 
+    console.log(match);
     if (!match) throw new Error(`Invalid fit transformation: ${val}`);
 
     const positionMap = {
@@ -180,10 +181,12 @@ function resizeImageHandler(vals: string) {
 
     const out: { width?: number, height?: number } = {};
 
-    for (const [_, key, val] of vals.matchAll(/(w|h)(\d+)/g)) {
-        if (key === "w") out.width = parseInt(val, 10);
-        if (key === "h") out.height = parseInt(val, 10);
-    };
+    const match = vals.match(/^(?:w(\d+))?-?(?:h(\d+))?$/); // e.g w400-h350. Order matters
+    if (!match) throw new Error(`invalid resize params: ${vals}`);
+
+    const [_, widthVal, heightVal] = match;
+    if (widthVal) out.width = parseInt(widthVal, 10);
+    if (heightVal) out.height = parseInt(heightVal, 10);
 
     return out;
 };

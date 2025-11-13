@@ -2,9 +2,8 @@ import { tryCatch } from "@/utils/try-catch";
 import { resizeParametersV2 } from "./resize_map";
 import { encodeParametersV2 } from "./encode_map";
 
-export class TranformationParser {
+export class ParameterParser {
     parameterMap: Record<string, any>;
-
     constructor() {
         this.parameterMap = {
             ...resizeParametersV2,
@@ -12,16 +11,16 @@ export class TranformationParser {
         };
     };
 
-    parseTransformationString(trParams: string) {
+    parseParams(trParams: string) {
         const chains = trParams.split("::");
 
         return chains.map((c) => {
-            const parsedChain = this.parseChainv4(c);
+            const parsedChain = this.parseChain(c);
             return parsedChain;
         });
     };
 
-    parseChainv4(chain: string) {
+    parseChain(chain: string) {
         const parameters = chain.split(",");
 
         return parameters

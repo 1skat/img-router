@@ -2,6 +2,7 @@ import { Elysia } from 'elysia';
 import { connectRedis } from './internal/db/redis';
 import { keyRoutes } from './routes/api_keys';
 import { accountRoutes } from './routes/accounts';
+import { imageRoutes } from './routes/images';
 
 enum ImageFormat {
     Avif = "avif",
@@ -33,9 +34,14 @@ export type UserImageSettings = {
 };
 
 await connectRedis();
-const app = new Elysia()
+const imageApp = new Elysia()
+    .use(imageRoutes)
+
+const apiApp = new Elysia()
     .use(keyRoutes)
     .use(accountRoutes)
-    .listen(3001);
+
+imageApp.listen(3001);
+apiApp.listen(3002);
 
 console.log("server is running on port 3001");
