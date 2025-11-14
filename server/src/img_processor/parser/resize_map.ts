@@ -1,4 +1,5 @@
 import tinycolor from "tinycolor2";
+import type { AspectRatioParams, BackgroundParams, ExtractParams, FitParams, PadParams, ResizeParams, ZoomParams } from "@/img_processor/types";
 
 export const resizeParametersV2 = {
     rs: {
@@ -24,22 +25,19 @@ export const resizeParametersV2 = {
     },
 };
 
-function aspectRationImaegHandler(val: string) {
-    if (!val || val.trim() === "") {
-        console.error("ar_image_handler: parameter required after `ar`");
-        throw new Error("invalid image transformation");
-    };
+function aspectRationImaegHandler(vals: string): AspectRatioParams {
+    if (!vals.trim()) throw new Error("ar_image_handler: parameter required after `ar`");
 
-    const out: { wRatio?: number, hRatio?: number } = {};
+    const out: AspectRatioParams = {};
 
-    const matched = val.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
-    if (!matched) throw new Error(`Invalid pad transformation: ${val}`);
+    const matched = vals.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+    if (!matched) throw new Error(`Invalid pad transformation: ${vals}`);
 
     const [_, w, h] = matched;
     const wRatio = w ? parseInt(w, 10) : undefined;
     const hRatio = h ? parseInt(h, 10) : undefined;
 
-    if (!wRatio || !hRatio) throw new Error("invalid aspect ratio params");
+    if (!wRatio || !hRatio) throw new Error("aspect ration paramters undefined");
 
     out.wRatio = wRatio;
     out.hRatio = hRatio;
@@ -47,32 +45,29 @@ function aspectRationImaegHandler(val: string) {
     return out
 };
 
-function zoomImageHandler(val: string) {
-    if (!val || val.trim() === "") {
-        console.error("zoom_image_handler: parameter required after `z`");
-        throw new Error("invalid image transformation");
-    };
-    const out: { zoom?: number, x?: number, y?: number } = {};
+function zoomImageHandler(vals: string): ZoomParams {
+    if (!vals.trim()) throw new Error("zoom_image_handler: parameter required after `z`");
+    const out: ZoomParams = {};
 
-    const matched = val.match(/^([1-9]\d*(?:\.\d+)?)(?:-x(\d+))?(?:-y(\d+))?$/);
-    if (!matched) throw new Error(`Invalid z transformation: ${val}`);
-    const [_, z, x, y] = matched;
+    const match = vals.match(/^([1-9]\d*(?:\.\d+)?)(?:-x(\d+))?(?:-y(\d+))?$/);
+    if (!match) throw new Error(`invalid zoom parameters: ${vals}`)
+    const [_, z, x, y] = match;
 
     const zoom = z ? parseFloat(z) : 1;
     const xNum = x ? parseInt(x, 10) : undefined;
     const yNum = y ? parseInt(y, 10) : undefined;
 
     if (zoom < 1) throw new Error("Zoom factor must be >= 1");
+    if (xNum && xNum < 1) throw new Error("Zoom: x must be >= 1");
+    if (yNum && yNum < 1) throw new Error("Zoom: y factor must be >= 1");
 
-    out.zoom = zoom;
-    out.x = xNum;
-    out.y = yNum;
+    out.zoom = zoom; out.x = xNum; out.y = yNum;
 
     return out;
 };
 
-function backgroundHandler(val: string) {
-    if (!val || val.trim() === "") {
+function backgroundHandler(val: string): BackgroundParams {
+    if (!val.trim()) {
         console.error("pad_image_handler: parameter required after `bg`");
         throw new Error("invalid image transformation for 'bg'");
     };
@@ -85,82 +80,93 @@ function backgroundHandler(val: string) {
     return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.a };
 };
 
-function padImageHandler(val: string) {
-    if (!val || val.trim() === "") {
-        console.error("pad_image_handler: parameter required after `pad`");
-        throw new Error("invalid image transformation for 'pad'");
-    };
+function padImageHandler(vals: string): PadParams {
+    if (!vals.trim()) throw new Error("pad_image_handler: parameter required after `pad`");
 
-    if (/^\d+$/.test(val)) {
-        const num = parseInt(val, 10);
+    if (!/^[\dtlbr-]+$/.test(vals)) throw new Error("Invalid padding format. Use: 10 or t10-l20-b30-r40");
+
+    // All sides
+    if (/^\d+$/.test(vals)) {
+        const num = parseInt(vals, 10);
         if (isNaN(num) || num < 1) throw new Error("value has to be greater than 0");
 
-        return { top: num, left: num, bottom: num, right: num }
+        return { top: num, left: num, bottom: num, right: num };
     }
 
-    const matchesArr = [...val.matchAll(/(t|l|b|r)(\d+)/g)];
-    if (matchesArr.length === 0) throw new Error(`Invalid pad transformation: ${val}`);
+    // One or more sides
+    const out: PadParams = {};
+    const match = vals.matchAll(/(t|l|b|r)(\d+)/g);
 
-    const content = {};
-    for (const [_, mode, val] of matchesArr) {
+    for (const [_, mode, val] of match) {
         const num = parseInt(val, 10);
         if (isNaN(num) || num < 1) throw new Error("value has to be greater than 0");
 
-        if (mode === "t") content.top = num;
-        else if (mode === "l") content.left = num;
-        else if (mode === "b") content.bottom = num;
-        else if (mode === "r") content.right = num;
+        switch (mode) {
+            case "t": out.top = num; break;
+            case "l": out.left = num; break;
+            case "b": out.bottom = num; break;
+            case "r": out.right = num; break;
+            default: throw new Error(`Unknown parameter: ${mode}${val}`);
+        };
     };
 
-    return content;
-};
-
-function extractImageHandler(val: string) {
-    if (!val || val.trim() === "") {
-        console.error("extract_image_handler: parameter required after `extr`");
-        throw new Error("invalid image transformation");
-    };
-    const out: any = {};
-    const matchesArr = [...val.matchAll(/(x|y|w|h)(\d+)/g)]; // x100-y100-w300-h400
-
-    if (matchesArr.length === 0) throw new Error(`Invalid extract transformation: ${val}`);
-
-    for (const [_, mode, vals] of matchesArr) {
-        const num = parseInt(vals, 10);
-        if (isNaN(num) || num < 1) throw new Error("value has to be greate than 0");
-
-        if (mode === "x") out.left = num;
-        else if (mode === "y") out.top = num;
-        else if (mode === "w") out.width = num;
-        else if (mode === "h") out.height = num;
-    };
+    if (!out.top && !out.left && !out.bottom && !out.right) throw new Error("padding parameters undefined");
 
     return out;
 };
 
-function fitImageHandler(val: string) { // e.g prt. Padding right top
-    if (!val) throw new Error("fit_image_handler: parameter required after `fit`");
-
-    const match = val.match(/^(?:(p)(rt|lt|rb|lb|t|r|b|l)?|(in|out|fill))$/); // e.g 
-    console.log(match);
-    if (!match) throw new Error(`Invalid fit transformation: ${val}`);
-
-    const positionMap = {
-        t: "top",
-        rt: "right top",
-        r: "right",
-        rb: "right bottom",
-        b: "bottom",
-        lb: "left bottom",
-        l: "left",
-        lt: "left top",
+function extractImageHandler(vals: string): ExtractParams {
+    if (!vals.trim()) {
+        console.error("extract_image_handler: parameter required after `extr`");
+        throw new Error("invalid image transformation");
     };
+    const out: ExtractParams = {};
+    const match = vals.matchAll(/(x|y|w|h)(\d+)/g);
+
+    for (const [_, mode, val] of match) {
+        const num = parseInt(val, 10);
+        if (isNaN(num) || num < 1) throw new Error("value has to be greater than 0");
+
+        switch (mode) {
+            case "x": out.x = num; break;
+            case "y": out.y = num; break;
+            case "w": out.width = num; break;
+            case "h": out.height = num; break;
+            default: throw new Error(`Unknown parameter: ${mode}${val}`);
+        }
+    };
+
+    if (!out.width) throw new Error("extract: width not specified");
+    if (!out.height) throw new Error("extract: height not specified");
+    if (!out.x) throw new Error("extract: x not specified");
+    if (!out.y) throw new Error("extract: y not specified");
+
+    return out;
+};
+
+function fitImageHandler(vals: string): FitParams {
+    if (!vals.trim()) throw new Error("fit_image_handler: parameter required after `fit`");
+
+    const match = vals.match(/^(p|in|out|fill)(.*)$/); // e.g 'prt' (padding right top) 
+    if (!match) throw new Error(`Invalid fit transformation: ${vals}`);
 
     const [_, mode, position] = match;
     switch (mode) {
         case "p": {
-            const pos = positionMap[position];
-            return { fit: "contain", ...(pos && { position: pos }) };
+            const positionMap = {
+                t: "top",
+                rt: "right top",
+                r: "right",
+                rb: "right bottom",
+                b: "bottom",
+                lb: "left bottom",
+                l: "left",
+                lt: "left top",
+            };
+            const pos = positionMap[position?.trim()];
+            if (!pos) throw new Error(`Invalid position: ${position?.trim()}`);
+
+            return { fit: "contain", position: pos };
         };
         case "fill": {
             return { fit: "fill" };
@@ -176,17 +182,18 @@ function fitImageHandler(val: string) { // e.g prt. Padding right top
 };
 
 
-function resizeImageHandler(vals: string) {
-    if (!vals) throw new Error("resize_image_handler: parameter required after `rs`");
+function resizeImageHandler(vals: string): ResizeParams {
+    if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
 
-    const out: { width?: number, height?: number } = {};
+    const out: ResizeParams = {};
 
-    const match = vals.match(/^(?:w(\d+))?-?(?:h(\d+))?$/); // e.g w400-h350. Order matters
-    if (!match) throw new Error(`invalid resize params: ${vals}`);
+    const match = vals.matchAll(/(w|h)(\d+)/g); // e.g w400-h320
+    for (const [_, mode, val] of match) {
+        if (mode === "w") out.width = parseInt(val, 10);
+        if (mode === "h") out.height = parseInt(val, 10);
+    };
 
-    const [_, widthVal, heightVal] = match;
-    if (widthVal) out.width = parseInt(widthVal, 10);
-    if (heightVal) out.height = parseInt(heightVal, 10);
+    if (!out.height && !out.width) throw new Error("resize parameterundefined");
 
     return out;
 };
