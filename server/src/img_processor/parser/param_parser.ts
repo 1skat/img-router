@@ -15,8 +15,15 @@ export class ParameterParser {
         const chains = trParams.split("::");
 
         return chains.map((c) => {
-            const parsedChain = this.parseChain(c);
-            return parsedChain;
+            const [parsedChain, err] = tryCatch(() => this.parseChain(c));
+            if (err) throw new Error(`parse_params: ${err.message}`);
+
+            const transformationMap: Record<string, any> = {};
+            return parsedChain.reduce((acc, [method, content]) => {
+                if (!acc[method]) acc[method] = {};
+                Object.assign(acc[method], content);
+                return acc;
+            }, transformationMap);
         });
     };
 
@@ -34,10 +41,11 @@ export class ParameterParser {
                 const spec = this.parameterMap[key];
                 if (!spec) throw new Error(`parse_param: Unknown key '${key}'`);
 
-                const [handlerResult, handlerErr] = tryCatch(spec.handler(val));
-                if (handlerErr) throw handlerErr;
+                const [handlerResult, handlerErr] = tryCatch(() => spec.handler(val));
+                if (handlerErr) throw new Error(`parse_chain: ${handlerErr.message}`);
+                const specKey = spec.k;
 
-                return { key: key, value: handlerResult };
+                return [specKey, handlerResult];
             });
     };
 };

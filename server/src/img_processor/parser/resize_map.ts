@@ -2,25 +2,39 @@ import tinycolor from "tinycolor2";
 import type { AspectRatioParams, BackgroundParams, ExtractParams, FitParams, PadParams, ResizeParams, ZoomParams } from "@/img_processor/types";
 
 export const resizeParametersV2 = {
-    rs: {
-        handler: resizeImageHandler,
+    // rs: {
+    //     handler: resizeImageHandler,
+    // },
+    w: {
+        k: "resize",
+        handler: resizeWidthHandler,
+    },
+    h: {
+        k: "resize",
+        handler: heightWidthHandler,
     },
     extr: {
+        k: "extract",
         handler: extractImageHandler,
     },
     fit: {
+        k: "fit",
         handler: fitImageHandler,
     },
     pad: {
+        k: "pad",
         handler: padImageHandler,
     },
     bg: {
+        k: "background",
         handler: backgroundHandler,
     },
     z: {
+        k: "zoom",
         handler: zoomImageHandler,
     },
     ar: {
+        k: "aspectRatio",
         handler: aspectRationImaegHandler,
     },
 };
@@ -37,7 +51,7 @@ function aspectRationImaegHandler(vals: string): AspectRatioParams {
     const wRatio = w ? parseInt(w, 10) : undefined;
     const hRatio = h ? parseInt(h, 10) : undefined;
 
-    if (!wRatio || !hRatio) throw new Error("aspect ration paramters undefined");
+    if (!wRatio || !hRatio) throw new Error("aspect ratio paramters undefined");
 
     out.wRatio = wRatio;
     out.hRatio = hRatio;
@@ -182,18 +196,42 @@ function fitImageHandler(vals: string): FitParams {
 };
 
 
-function resizeImageHandler(vals: string): ResizeParams {
+// function resizeImageHandler(vals: string): ResizeParams {
+//     if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
+
+//     const out: ResizeParams = {};
+
+//     const match = vals.matchAll(/(w|h)(\d+)/g); // e.g w400-h320
+//     for (const [_, mode, val] of match) {
+//         if (mode === "w") out.width = parseInt(val, 10);
+//         if (mode === "h") out.height = parseInt(val, 10);
+//     };
+
+//     if (!out.height && !out.width) throw new Error("resize parameterundefined");
+
+//     return out;
+// };
+
+function resizeWidthHandler(vals: string) {
     if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
 
-    const out: ResizeParams = {};
+    const match = vals.match(/^\d+$/); // e.g 400
+    if (!match) throw new Error("width undefined");
 
-    const match = vals.matchAll(/(w|h)(\d+)/g); // e.g w400-h320
-    for (const [_, mode, val] of match) {
-        if (mode === "w") out.width = parseInt(val, 10);
-        if (mode === "h") out.height = parseInt(val, 10);
-    };
+    const num = parseInt(match[0], 10);
+    if (isNaN(num) || num < 1) throw new Error("width cannot be < 1");
 
-    if (!out.height && !out.width) throw new Error("resize parameterundefined");
+    return { width: num };
+};
 
-    return out;
+function heightWidthHandler(vals: string) {
+    if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
+
+    const match = vals.match(/^\d+$/); // e.g 350
+    if (!match) throw new Error("height undefined");
+
+    const num = parseInt(match[0], 10);
+    if (isNaN(num) || num < 1) throw new Error("height cannot be < 1");
+
+    return { height: num };
 };
