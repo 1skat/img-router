@@ -61,7 +61,7 @@ class TransformationResolver {
         const { width, height } = value;
         if (!width && !height) throw new Error("resize requires at least one dimension");
 
-        // all dimensions: extr + pos
+        // both sides: extr + pos
         if (width && height) {
             const out: ResizeParams = {};
             out.width = width;
@@ -85,24 +85,21 @@ class TransformationResolver {
             return;
         };
 
-        // single dimension: ar
-        if (width || height) {
-            const out: ResizeParams = {};
+        if (width || height) { // single side
+            const ar = this.transformationMap["aspectRatio"];
+            if (ar) {
+                const newDimensions = this.applyAspectRatio({ width, height }, ar);
+                return;
+            };
+
+            // default case
             const [adjustedDimensions, dimensionsErr] = tryCatch(() => this.adjustAspectRatio(value, {
                 origWidth: this.state.width,
                 origHeight: this.state.height
             }));
             if (dimensionsErr) throw new Error(`resize: ${dimensionsErr.message}`);
 
-            const ar = this.transformationMap["aspectRatio"];
-            if (ar) {
-                const newDimensions = this.applyAspectRatio({ width, height }, ar);
-                out.width = newDimensions.width;
-                out.height = newDimensions.height;
-            };
-
-            this.addInstruction("resize", out);
-            return;
+            this.addInstruction("resize", { width: adjustedDimensions.width, height: adjustedDimensions.height });
         };
 
         // // Aspect ratio inside resize: (applied only to the request value)
