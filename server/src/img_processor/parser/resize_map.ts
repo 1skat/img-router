@@ -13,7 +13,15 @@ export const resizeParametersV2 = {
         k: "resize",
         handler: heightWidthHandler,
     },
-    extr: {
+    x: {
+        k: "position",
+        handler: xAxisHandler,
+    },
+    y: {
+        k: "position",
+        handler: yAxisHandler,
+    },
+    cr: {
         k: "extract",
         handler: extractImageHandler,
     },
@@ -51,7 +59,7 @@ function aspectRationImaegHandler(vals: string): AspectRatioParams {
     const wRatio = w ? parseInt(w, 10) : undefined;
     const hRatio = h ? parseInt(h, 10) : undefined;
 
-    if (!wRatio || !hRatio) throw new Error("aspect ratio paramters undefined");
+    if (!wRatio || !hRatio) throw new Error("aspect ratio paramters undefined"); // 0s will error out too
 
     out.wRatio = wRatio;
     out.hRatio = hRatio;
@@ -129,33 +137,56 @@ function padImageHandler(vals: string): PadParams {
     return out;
 };
 
-function extractImageHandler(vals: string): ExtractParams {
-    if (!vals.trim()) {
-        console.error("extract_image_handler: parameter required after `extr`");
-        throw new Error("invalid image transformation");
-    };
-    const out: ExtractParams = {};
-    const match = vals.matchAll(/(x|y|w|h)(\d+)/g);
+function xAxisHandler(vals: string) {
+    if (!vals.trim()) throw new Error("x_axis_image_handler: parameter required after `x`");
 
-    for (const [_, mode, val] of match) {
-        const num = parseInt(val, 10);
-        if (isNaN(num) || num < 1) throw new Error("value has to be greater than 0");
+    const match = vals.match(/^\d+$/); // e.g 130
+    if (!match) throw new Error("X's value udefined");
 
-        switch (mode) {
-            case "x": out.x = num; break;
-            case "y": out.y = num; break;
-            case "w": out.width = num; break;
-            case "h": out.height = num; break;
-            default: throw new Error(`Unknown parameter: ${mode}${val}`);
-        }
-    };
+    const num = parseInt(match[0], 10);
+    if (isNaN(num) || num < 1) throw new Error("x must be >= 1");
 
-    if (!out.width) throw new Error("extract: width not specified");
-    if (!out.height) throw new Error("extract: height not specified");
-    if (!out.x) throw new Error("extract: x not specified");
-    if (!out.y) throw new Error("extract: y not specified");
+    return { x: num };
+};
 
-    return out;
+function yAxisHandler(vals: string) {
+    if (!vals.trim()) throw new Error("x_axis_image_handler: parameter required after `x`");
+
+    const match = vals.match(/^\d+$/); // e.g 150
+    if (!match) throw new Error("X's value udefined");
+
+    const num = parseInt(match[0], 10);
+    if (isNaN(num) || num < 1) throw new Error("x must be >= 1");
+
+    return { y: num };
+};
+
+function extractImageHandler(vals: string) {
+    return { value: true };
+    // if (!vals.trim()) throw new Error("extract_image_handler: parameter required after `extr`");
+
+    // const out: ExtractParams = {};
+    // const match = vals.matchAll(/(x|y)(\d+)/g); // e.g x20-y30
+
+    // for (const [_, mode, val] of match) {
+    //     const num = parseInt(val, 10);
+    //     if (isNaN(num) || num < 1) throw new Error("value has to be greater than 0");
+
+    //     switch (mode) {
+    //         case "x": out.x = num; break;
+    //         case "y": out.y = num; break;
+    //         case "w": out.width = num; break;
+    //         case "h": out.height = num; break;
+    //         default: throw new Error(`Unknown parameter: ${mode}${val}`);
+    //     }
+    // };
+
+    // if (!out.width) throw new Error("extract: width not specified");
+    // if (!out.height) throw new Error("extract: height not specified");
+    // if (!out.x) throw new Error("extract: x not specified");
+    // if (!out.y) throw new Error("extract: y not specified");
+
+    // return out;
 };
 
 function fitImageHandler(vals: string): FitParams {
@@ -219,7 +250,7 @@ function resizeWidthHandler(vals: string) {
     if (!match) throw new Error("width undefined");
 
     const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("width cannot be < 1");
+    if (isNaN(num) || num < 1) throw new Error("width must be >= 1");
 
     return { width: num };
 };
@@ -231,7 +262,7 @@ function heightWidthHandler(vals: string) {
     if (!match) throw new Error("height undefined");
 
     const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("height cannot be < 1");
+    if (isNaN(num) || num < 1) throw new Error("height must be >= 1");
 
     return { height: num };
 };

@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImgState } from "./image_state";
-import type { AspectRatioParams, ResizeParams } from "@/img_processor/types";
+import type { AspectRatioParams, ExtractParams, ResizeParams } from "@/img_processor/types";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, parameterChains: any) {
     // Shared state for all parameter chains
@@ -44,7 +44,6 @@ class TransformationResolver {
 
     resolveChain(chain: any) {
         this.transformationMap = chain;
-
         for (const [key, content] of Object.entries(chain)) {
             const handler = this.transformHandlers[key];
             if (!handler) {
@@ -59,34 +58,86 @@ class TransformationResolver {
     };
 
     private resolveResize(value: ResizeParams) {
-        const out: ResizeParams = {};
         const { width, height } = value;
         if (!width && !height) throw new Error("resize requires at least one dimension");
 
-        // Aspect ratio inside resize: (applied only to the request value)
-        const ar = this.transformationMap["aspectRatio"];
-        if (ar) {
-            const newDimensions = this.applyAspectRatio({ width, height }, ar);
-            out.width = newDimensions.width
-            out.height = newDimensions.height;
-        }
-        // Adjust aspect ratio if only one demension is known
-        else {
-            const [newDimensions, dimensionsErr] = tryCatch(() => this.adjustAspectRatio(value, {
+        // all dimensions: extr + pos
+        if (width && height) {
+            const out: ResizeParams = {};
+            out.width = width;
+            out.height = height;
+
+            const pos = this.transformationMap["position"];
+            if (pos) {
+                const { x, y } = pos;
+                const origRatio = this.state.width / this.state.height; // 1.34
+                const currRatio = width / height; // 0.2
+
+                const boxWidth = (origRatio > currRatio) ? Math.round(height * origRatio) : width;
+                const boxHeight = (origRatio < currRatio) ? Math.round(width / origRatio) : height;
+
+                this.addInstruction("resize", { width: boxWidth, height: boxHeight }); // scale to the box
+                this.addInstruction("extract", { left: x ?? 0, top: y ?? 0, width: width, height: height }); // extract from the box
+                return;
+            };
+
+            this.addInstruction("resize", out);
+            return;
+        };
+
+        // single dimension: ar
+        if (width || height) {
+            const out: ResizeParams = {};
+            const [adjustedDimensions, dimensionsErr] = tryCatch(() => this.adjustAspectRatio(value, {
                 origWidth: this.state.width,
                 origHeight: this.state.height
             }));
-
             if (dimensionsErr) throw new Error(`resize: ${dimensionsErr.message}`);
-            out.width = newDimensions.width;
-            out.height = newDimensions.height;
+
+            const ar = this.transformationMap["aspectRatio"];
+            if (ar) {
+                const newDimensions = this.applyAspectRatio({ width, height }, ar);
+                out.width = newDimensions.width;
+                out.height = newDimensions.height;
+            };
+
+            this.addInstruction("resize", out);
+            return;
         };
 
-        // const extr = this.transformationMap["extract"];
+        // // Aspect ratio inside resize: (applied only to the request value)
+        // const ar = this.transformationMap["aspectRatio"];
+        // if (ar) {
+        //     const newDimensions = this.applyAspectRatio({ width, height }, ar);
+        //     out.width = newDimensions.width
+        //     out.height = newDimensions.height;
+
+        //     // should check for extract inside of here?
+        // }
+        // // Adjust aspect ratio if only one demension is known
+        // else {
+        //     const [newDimensions, dimensionsErr] = tryCatch(() => this.adjustAspectRatio(value, {
+        //         origWidth: this.state.width,
+        //         origHeight: this.state.height
+        //     }));
+
+        //     if (dimensionsErr) throw new Error(`resize: ${dimensionsErr.message}`);
+        //     out.width = newDimensions.width;
+        //     out.height = newDimensions.height;
+        // };
+
+        // // I need to save the adjusted dimensions (one side is specified)
+        // const pos = this.transformationMap["position"]; // requires both w and h values
+        // if (pos) {
+        //     const { x, y } = pos;
+        //     const adjustedWidth = out.width;
+        //     const adjustedHeight = out.height;
+        // };
 
 
-        this.addOrMerge("resize", out);
-        this.state.applyResize({ width: out.width, height: out.height });
+
+        // this.addOrMerge("resize", out);
+        // this.state.applyResize({ width: out.width, height: out.height });
 
         // const MODIFIERS = ["ar", "z"];
         // const mods = this.getModifiers(MODIFIERS);
@@ -108,9 +159,8 @@ class TransformationResolver {
     adjustAspectRatio({ width, height }: ResizeParams, { origWidth, origHeight }: any) {
         const orgAspectRatio = origWidth / origHeight;
 
-        if (width && height) return { width, height };
-        if (width && !height) return { width, height: Math.floor(width / orgAspectRatio) };
-        if (!width && height) return { width: Math.floor(height * orgAspectRatio), height: height };
+        if (width && !height) return { width, height: Math.round(width / orgAspectRatio) };
+        if (!width && height) return { width: Math.round(height * orgAspectRatio), height: height };
         else throw new Error("failed to adjust dimensions");
     };
 
@@ -125,7 +175,6 @@ class TransformationResolver {
 
         const currRatio = width / height;
         const targetRatio = wRatio / hRatio;
-        console.log("original image:", width, height);
 
         if (currRatio > targetRatio) { // image is wide -> constrain by height, scale down width 
             out.width = Math.floor(height * targetRatio);
@@ -133,17 +182,17 @@ class TransformationResolver {
         };
         if (currRatio < targetRatio) { // image is tall -> constain by width, scale down height
             out.width = width;
-            out.height = Math.floor(width / targetRatio);
+            out.height = Math.floor(width / targetRatio)
         };
 
-        this.addOrMerge("resize", out);
+        this.addInstruction("resize", out);
         this.state.applyResize({ width: out.width, height: out.height });
     };
 
     applyAspectRatio({ width, height }: ResizeParams, ar: AspectRatioParams) {
         const { wRatio, hRatio } = ar;
 
-        if (width && height) return { width, height }; // both present, 'ar' ignored
+        // if (width && height) return { width, height }; // both present, 'ar' ignored, or might throw error
 
         const outWidth = width ?? Math.floor((height * wRatio) / hRatio);
         const outHeight = height ?? Math.floor((width * hRatio) / wRatio);
@@ -210,15 +259,15 @@ class TransformationResolver {
     //     this.addOrMerge("toFormat", { id: format, options: { quality: quality } });
     // };
 
-    // resolveExtract(value: any) {
-    //     const content: any = { ...value };
-    //     const centerCoords = (imgSize: number, boxSize: number) => (Math.floor((imgSize - boxSize) / 2));
+    resolveExtract(value: any) {
+        const content: any = { ...value };
+        const centerCoords = (imgSize: number, boxSize: number) => (Math.floor((imgSize - boxSize) / 2));
 
-    //     content.left ??= centerCoords(this.state.width, content.width);
-    //     content.top ??= centerCoords(this.state.height, content.height);
+        content.left ??= centerCoords(this.state.width, content.width);
+        content.top ??= centerCoords(this.state.height, content.height);
 
-    //     this.addOrMerge("extract", content);
-    // };
+        this.addInstruction("extract", content);
+    };
 
     // resolveFit(value: any) {
     //     this.addOrMerge("resize", value);
@@ -260,29 +309,7 @@ class TransformationResolver {
     // };
 
 
-
-
-    // calcARFromOriginal(wRatio: any, hRatio: any) {
-    //     const { width, height } = this.state;
-    //     const currRatio = width / height;
-    //     const targetRatio = wRatio / hRatio;
-
-    //     let newWidth, newHeight;
-
-    //     if (currRatio > targetRatio) {
-    //         // Image is wider - constrain by height
-    //         newHeight = height;
-    //         newWidth = Math.floor(height * targetRatio);
-    //     } else {
-    //         // Image is taller - constrain by width
-    //         newWidth = width;
-    //         newHeight = Math.floor(width / targetRatio);
-    //     };
-
-    //     return { width: newWidth, height: newHeight };
-    // };
-
-    addOrMerge(sharpMethod: string, content: any) {
+    addInstruction(sharpMethod: string, content: any) {
         if (!this.instructions[sharpMethod]) this.instructions[sharpMethod] = {};
         Object.assign(this.instructions[sharpMethod], content); // e.g "resize", {width: 400, height: 350}
     };

@@ -45,6 +45,7 @@ export class ParameterParser {
                 if (handlerErr) throw new Error(`parse_chain: ${handlerErr.message}`);
                 const specKey = spec.k;
 
+                console.log(specKey, handlerResult);
                 return [specKey, handlerResult];
             });
     };

@@ -7,7 +7,8 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
 import { ParameterParser } from "@/img_processor/parser/param_parser";
-import { resolvedSharpInstructions, TransformationResolver } from "@/img_processor/resolver/resolver";
+import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
+import { buildSharpTransformerV2 } from "@/img_processor/ix_builder/build_transform";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -75,7 +76,7 @@ export const imageRoutes = new Elysia()
         };
         console.log("parsed chain:", parsedParamChains[0]);
 
-        // // 2: build transformation instructions for sharp
+        // 2: build transformation instructions for sharp
         const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, accountSettings, parsedParamChains));
         if (resolverErr) {
             set.status = 400;
@@ -84,20 +85,15 @@ export const imageRoutes = new Elysia()
         console.log("sharp instuctions", sharpInstructionChain);
 
         // 3: build sharp transformers from insructions
+        const transformers = buildSharpTransformerV2(sharpInstructionChain);
 
+        for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 
-        // const transformers = buildSharpTransformerV2(normalizedTransformChains);
+        set.headers = {
+            "Content-Type": "image/png",
+        };
+        set.status = 200;
+        const outBuffer = await sharpInstance.toBuffer();
 
-        // for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
-
-        // c.set.headers = {
-        //     "Content-Type": "image/png",
-        //     // "Cache-Control": "public, max-age=3600"
-        // };
-        // c.set.status = 200;
-
-        // const outBuffer = await sharpInstance.toBuffer();
-
-        // return outBuffer;
-
+        return outBuffer;
     });
