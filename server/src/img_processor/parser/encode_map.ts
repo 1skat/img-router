@@ -1,4 +1,3 @@
-import { DEFAULT_IMG_QUALITY } from "@/constant";
 
 export const encodeParametersV2 = {
     f: {
@@ -15,7 +14,7 @@ function qualityHandler(value: string) {
     if (num >= 10 && num <= 100) return { quality: num };
 
     return {
-        quality: DEFAULT_IMG_QUALITY
+        quality: 80, // use constant
     };
 };
 

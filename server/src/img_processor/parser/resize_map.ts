@@ -144,7 +144,7 @@ function xAxisHandler(vals: string) {
     if (!match) throw new Error("X's value udefined");
 
     const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("x must be >= 1");
+    if (isNaN(num) || num < 0) throw new Error("x must be >= 0");
 
     return { x: num };
 };
@@ -156,13 +156,13 @@ function yAxisHandler(vals: string) {
     if (!match) throw new Error("X's value udefined");
 
     const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("x must be >= 1");
+    if (isNaN(num) || num < 0) throw new Error("x must be >= 0");
 
     return { y: num };
 };
 
 function extractImageHandler(vals: string) {
-    return { value: true };
+    return true;
     // if (!vals.trim()) throw new Error("extract_image_handler: parameter required after `extr`");
 
     // const out: ExtractParams = {};

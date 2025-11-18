@@ -46,12 +46,7 @@ class TransformationResolver {
         this.transformationMap = chain;
         for (const [key, content] of Object.entries(chain)) {
             const handler = this.transformHandlers[key];
-            if (!handler) {
-                console.log(`Unsupported transformation ${key}`);
-                continue;
-            };
-
-            handler(content);
+            if (handler) handler(content);
         };
 
         return this.instructions;
@@ -60,35 +55,47 @@ class TransformationResolver {
     private resolveResize(value: ResizeParams) {
         const { width, height } = value;
         if (!width && !height) throw new Error("resize requires at least one dimension");
+        const { position, extract, aspectRatio } = this.getMods(["position", "extract", "aspectRatio"]);
 
-        // both sides: extr + pos
         if (width && height) {
-            const out: ResizeParams = {};
-            out.width = width;
-            out.height = height;
+            if (extract && position) {
+                const leftOffset = position.x ?? Math.round((this.state.width - width) / 2);
+                const topOffset = position.y ?? Math.round((this.state.height - height) / 2);
 
-            const pos = this.transformationMap["position"];
-            if (pos) {
-                const { x, y } = pos;
-                const origRatio = this.state.width / this.state.height; // 1.34
-                const currRatio = width / height; // 0.2
+                if (leftOffset > (this.state.width - width)) throw new Error("x out of boundary");
+                if (topOffset > (this.state.height - height)) throw new Error("y out of boundary");
+
+                this.addInstruction("extract", { left: leftOffset, top: topOffset, width: width, height: height });
+                return;
+            };
+
+            if (position) {
+                const { x, y } = position;
+                const origRatio = this.state.width / this.state.height;
+                const currRatio = width / height;
 
                 const boxWidth = (origRatio > currRatio) ? Math.round(height * origRatio) : width;
                 const boxHeight = (origRatio < currRatio) ? Math.round(width / origRatio) : height;
 
-                this.addInstruction("resize", { width: boxWidth, height: boxHeight }); // scale to the box
-                this.addInstruction("extract", { left: x ?? 0, top: y ?? 0, width: width, height: height }); // extract from the box
+                const xMax = boxWidth - width;
+                const yMax = boxHeight - height;
+
+                if ((xMax - x) < 0) throw new Error("x out of boundary");
+                if ((yMax - y) < 0) throw new Error("y out of boundary");
+
+                this.addInstruction("resize", { width: boxWidth, height: boxHeight });
+                this.addInstruction("extract", { left: x ?? 0, top: y ?? 0, width: width, height: height });
                 return;
             };
 
-            this.addInstruction("resize", out);
+            this.addInstruction("resize", { width, height });
             return;
         };
 
         if (width || height) { // single side
-            const ar = this.transformationMap["aspectRatio"];
-            if (ar) {
-                const newDimensions = this.applyAspectRatio({ width, height }, ar);
+            if (aspectRatio) {
+                const newDimensions = this.applyAspectRatio({ width, height }, aspectRatio);
+                this.addInstruction("resize", { width: newDimensions.width, height: newDimensions.height });
                 return;
             };
 
@@ -100,6 +107,7 @@ class TransformationResolver {
             if (dimensionsErr) throw new Error(`resize: ${dimensionsErr.message}`);
 
             this.addInstruction("resize", { width: adjustedDimensions.width, height: adjustedDimensions.height });
+            return;
         };
 
         // // Aspect ratio inside resize: (applied only to the request value)
@@ -191,8 +199,8 @@ class TransformationResolver {
 
         // if (width && height) return { width, height }; // both present, 'ar' ignored, or might throw error
 
-        const outWidth = width ?? Math.floor((height * wRatio) / hRatio);
-        const outHeight = height ?? Math.floor((width * hRatio) / wRatio);
+        const outWidth = width ?? Math.round((height * wRatio) / hRatio);
+        const outHeight = height ?? Math.round((width * hRatio) / wRatio);
 
         return { width: outWidth, height: outHeight };
     };
@@ -304,6 +312,14 @@ class TransformationResolver {
     //     console.log("after zoom", targetWidth, targetWidth);
     //     this.addOrMerge("extract", { top: top, left: left, width: this.state.width, height: this.state.height });
     // };
+
+    getMods(modifiers: string[]) { // ar, pos, extr
+        const out: Record<string, any> = {};
+        return modifiers.reduce((acc, mod) => {
+            acc[mod] = this.transformationMap[mod];
+            return acc;
+        }, out);
+    };
 
 
     addInstruction(sharpMethod: string, content: any) {

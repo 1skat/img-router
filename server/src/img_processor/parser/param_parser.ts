@@ -21,7 +21,9 @@ export class ParameterParser {
             const transformationMap: Record<string, any> = {};
             return parsedChain.reduce((acc, [method, content]) => {
                 if (!acc[method]) acc[method] = {};
-                Object.assign(acc[method], content);
+                typeof content === "object"
+                    ? Object.assign(acc[method], content)
+                    : (acc[method] = content);
                 return acc;
             }, transformationMap);
         });
@@ -45,7 +47,6 @@ export class ParameterParser {
                 if (handlerErr) throw new Error(`parse_chain: ${handlerErr.message}`);
                 const specKey = spec.k;
 
-                console.log(specKey, handlerResult);
                 return [specKey, handlerResult];
             });
     };
