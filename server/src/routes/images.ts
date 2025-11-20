@@ -7,7 +7,7 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
 import { ParameterParser } from "@/img_processor/parser/param_parser";
-import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
+import { resolvedSharpInstructions } from "@/img_processor/resolver/main";
 import { buildSharpTransformerV2 } from "@/img_processor/ix_builder/build_transform";
 
 const s3 = new S3Client({
@@ -74,7 +74,7 @@ export const imageRoutes = new Elysia()
             set.status = 400;
             return { error: paramErr.message }
         };
-        console.log("parsed chain:", parsedParamChains[0]);
+        console.log("parsed param:", parsedParamChains);
 
         // 2: build transformation instructions for sharp
         const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, accountSettings, parsedParamChains));
@@ -82,12 +82,12 @@ export const imageRoutes = new Elysia()
             set.status = 400;
             return { error: resolverErr.message };
         };
-        console.log("sharp instuctions", sharpInstructionChain);
+        // console.log("sharp instuctions", sharpInstructionChain);
 
         // 3: build sharp transformers from insructions
-        const transformers = buildSharpTransformerV2(sharpInstructionChain);
+        // const transformers = buildSharpTransformerV2(sharpInstructionChain);
 
-        for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
+        // for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 
         set.headers = {
             "Content-Type": "image/png",

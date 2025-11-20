@@ -6,7 +6,7 @@ type ImgStateFields = {
     format: string;
 };
 
-export class ImgState {
+export class ImageState {
     private state: ImgStateFields;
 
     constructor(imageMetadata: sharp.Metadata) {
