@@ -85,9 +85,9 @@ export const imageRoutes = new Elysia()
         // console.log("sharp instuctions", sharpInstructionChain);
 
         // 3: build sharp transformers from insructions
-        // const transformers = buildSharpTransformerV2(sharpInstructionChain);
+        const transformers = buildSharpTransformerV2(sharpInstructionChain);
 
-        // for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
+        for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 
         set.headers = {
             "Content-Type": "image/png",

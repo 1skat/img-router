@@ -4,17 +4,18 @@ import type { ResizeParams } from "../../types";
 export const resolveResize = (ctx: TransformationResolver, value: ResizeParams): void => {
     const { width, height } = value;
     if (!width && !height) throw new Error("resize requires at least one dimension");
-    const { position, extract, aspectRatio } = ctx.getMods(["position", "extract", "aspectRatio"]);
+    const { position, extract, aspectRatio, zoom } = ctx.getMods(["position", "extract", "aspectRatio, zoom"]);
 
     if (width && height) {
-        if (extract && position) {
-            const leftOffset = position.x ?? Math.round((ctx.state.width - width) / 2);
-            const topOffset = position.y ?? Math.round((ctx.state.height - height) / 2);
+        if (extract) {
+            const leftOffset = position?.x ?? Math.round((ctx.state.width - width) / 2);
+            const topOffset = position?.y ?? Math.round((ctx.state.height - height) / 2);
 
             if (leftOffset > (ctx.state.width - width)) throw new Error("x out of boundary");
             if (topOffset > (ctx.state.height - height)) throw new Error("y out of boundary");
 
             ctx.addInstruction("extract", { left: leftOffset, top: topOffset, width: width, height: height });
+            ctx.state.applyResize({ width, height });
             return;
         };
 
@@ -34,10 +35,12 @@ export const resolveResize = (ctx: TransformationResolver, value: ResizeParams):
 
             ctx.addInstruction("resize", { width: boxWidth, height: boxHeight });
             ctx.addInstruction("extract", { left: x ?? 0, top: y ?? 0, width: width, height: height });
+            // ctx.state.applyResize({ width, height });
             return;
         };
 
         ctx.addInstruction("resize", { width, height });
+        ctx.state.applyResize({ width, height });
         return;
     };
 
@@ -54,6 +57,7 @@ export const resolveResize = (ctx: TransformationResolver, value: ResizeParams):
         const outWidth = height ? Math.round(height * orgAspectRatio) : width;
         const outHeight = width ? Math.round(width / orgAspectRatio) : height;
         ctx.addInstruction("resize", { width: outWidth, height: outHeight });
+        // ctx.state.applyResize({ width: outWidth, height: outHeight });
         return;
     };
 };

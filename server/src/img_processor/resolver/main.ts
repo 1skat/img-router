@@ -1,7 +1,6 @@
 import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./image_state";
-import type { TransformationResolverState } from "./resolver_state";
 import { SharpInsructionMap } from "./sharp_ix_map";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, parameterChains: any) {
@@ -39,6 +38,7 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
+        console.log(this.sharpInstructions);
         return this.sharpInstructions;
     };
 

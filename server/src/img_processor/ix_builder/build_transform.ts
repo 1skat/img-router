@@ -24,7 +24,6 @@ export function buildSharpTransformerV2(chains: any) {
         return chains.map((chain: any) => {
             return (instance: any) => {
                 for (const [method, content] of Object.entries(chain)) {
-                    console.log("method", method, "content", content);
                     if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
                     // instance = fn.call(instance, ...(content.options) ? ...Object.values(content) : [content]);
                     if (content && content.options) instance = instance[method](...Object.values(content));
