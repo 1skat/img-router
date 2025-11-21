@@ -38,3 +38,22 @@ export function buildSharpTransformerV2(chains: any) {
     };
 };
 
+export function buildSharpTransformerV3(chains: any) {
+    try {
+        return chains.map((chain: any) => {
+            return (instance: any) => {
+                for (const { method, content } of chain) {
+                    if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
+                    // instance = fn.call(instance, ...(content.options) ? ...Object.values(content) : [content]);
+                    if (content && content.options) instance = instance[method](...Object.values(content));
+                    else instance = instance[method](content)
+                }
+                return instance;
+            };
+        });
+    }
+    catch (err) {
+        throw new Error(`build_sharp_transformer: ${err} `);
+    };
+};
+

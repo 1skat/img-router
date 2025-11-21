@@ -1,3 +1,4 @@
+import fs from "fs";
 import Elysia from "elysia";
 import slash from "slash";
 import path from "path";
@@ -8,7 +9,7 @@ import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
 import { ParameterParser } from "@/img_processor/parser/param_parser";
 import { resolvedSharpInstructions } from "@/img_processor/resolver/main";
-import { buildSharpTransformerV2 } from "@/img_processor/ix_builder/build_transform";
+import { buildSharpTransformerV2, buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -33,17 +34,17 @@ export const imageRoutes = new Elysia()
         if (!assetPath) throw new Error("Path required");
         if (!bucketName) throw new Error("Bucket name required");
 
-        const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
-        if (s3Err) {
-            set.status = 404;
-            return { error: s3Err.message }
-        };
+        // const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
+        // if (s3Err) {
+        //     set.status = 404;
+        //     return { error: s3Err.message }
+        // };
 
-        const imgStream = s3Response.Body;
-        if (!imgStream) {
-            set.status = 404;
-            return { error: "S3: failed to get image" };
-        };
+        // const imgStream = s3Response.Body;
+        // if (!imgStream) {
+        //     set.status = 404;
+        //     return { error: "S3: failed to get image" };
+        // };
 
         // Client hints:
         const userDeviceSupportedFormats = headers["accept"] ?? "";
@@ -63,7 +64,10 @@ export const imageRoutes = new Elysia()
             },
         };
 
-        const buf = await imgStream.transformToByteArray();
+        // const buf = await imgStream.transformToByteArray();
+        const imgPath = path.join(import.meta.dir, "audi_main.png");
+        const buf = fs.readFileSync(imgPath);
+
         let sharpInstance = sharp(buf);
         const imgMetadata = await sharpInstance.metadata();
 
@@ -74,7 +78,6 @@ export const imageRoutes = new Elysia()
             set.status = 400;
             return { error: paramErr.message }
         };
-        console.log("parsed param:", parsedParamChains);
 
         // 2: build transformation instructions for sharp
         const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, accountSettings, parsedParamChains));
@@ -85,7 +88,7 @@ export const imageRoutes = new Elysia()
         // console.log("sharp instuctions", sharpInstructionChain);
 
         // 3: build sharp transformers from insructions
-        const transformers = buildSharpTransformerV2(sharpInstructionChain);
+        const transformers = buildSharpTransformerV3(sharpInstructionChain);
 
         for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
 

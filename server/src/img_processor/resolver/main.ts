@@ -22,12 +22,14 @@ export class TransformationResolver {
     public accountSettings: any;
     public transformsReq: Record<string, any>;
     public sharpInstructions: Record<string, any>;
+    public sharpInstructionsV2: { method: string, content: any }[];
 
     constructor(imgState: ImageState, accountSettings?: any) {
         this.state = imgState;
         this.accountSettings = accountSettings;
         this.transformsReq = {};
         this.sharpInstructions = {};
+        this.sharpInstructionsV2 = [];
     };
 
     resolveChain(chain: any) {
@@ -38,8 +40,8 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
-        console.log(this.sharpInstructions);
-        return this.sharpInstructions;
+        console.log(this.sharpInstructionsV2);
+        return this.sharpInstructionsV2;
     };
 
     getMods(modifiers: string[]) {
@@ -54,6 +56,11 @@ export class TransformationResolver {
         if (!this.sharpInstructions[sharpMethod]) this.sharpInstructions[sharpMethod] = {};
         Object.assign(this.sharpInstructions[sharpMethod], content);
     };
+
+    addInstructionV2(sharpMethod: string, content: any) {
+        this.sharpInstructionsV2.push({ method: sharpMethod, content: content });
+    };
+
 }
 // private resolveResize(value: ResizeParams) {
 //     const { width, height } = value;
