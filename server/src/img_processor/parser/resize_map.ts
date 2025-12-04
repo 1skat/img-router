@@ -1,5 +1,5 @@
 import tinycolor from "tinycolor2";
-import type { AspectRatioParams, BackgroundParams, ExtractParams, FitParams, PadParams, ResizeParams, ZoomParams } from "@/img_processor/types";
+import type { AspectRatioParams, BackgroundParams, ExtractParams, FitParams, PaddingParams, ResizeParams, ZoomParams } from "@/img_processor/types";
 
 export const resizeParametersV2 = {
     // rs: {
@@ -30,7 +30,7 @@ export const resizeParametersV2 = {
         handler: fitImageHandler,
     },
     pad: {
-        k: "pad",
+        k: "padding",
         handler: padImageHandler,
     },
     bg: {
@@ -43,11 +43,11 @@ export const resizeParametersV2 = {
     },
     ar: {
         k: "aspectRatio",
-        handler: aspectRationImaegHandler,
+        handler: aspectRatioImaegHandler,
     },
 };
 
-function aspectRationImaegHandler(vals: string): AspectRatioParams {
+function aspectRatioImaegHandler(vals: string): AspectRatioParams {
     if (!vals.trim()) throw new Error("ar_image_handler: parameter required after `ar`");
 
     const out: AspectRatioParams = {};
@@ -102,7 +102,7 @@ function backgroundHandler(val: string): BackgroundParams {
     return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.a };
 };
 
-function padImageHandler(vals: string): PadParams {
+function padImageHandler(vals: string): PaddingParams {
     if (!vals.trim()) throw new Error("pad_image_handler: parameter required after `pad`");
 
     if (!/^[\dtlbr-]+$/.test(vals)) throw new Error("Invalid padding format. Use: 10 or t10-l20-b30-r40");
@@ -116,7 +116,7 @@ function padImageHandler(vals: string): PadParams {
     }
 
     // One or more sides
-    const out: PadParams = {};
+    const out: PaddingParams = {};
     const match = vals.matchAll(/(t|l|b|r)(\d+)/g);
 
     for (const [_, mode, val] of match) {
@@ -209,9 +209,8 @@ function fitImageHandler(vals: string): FitParams {
                 lt: "left top",
             };
             const pos = positionMap[position?.trim()];
-            if (!pos) throw new Error(`Invalid position: ${position?.trim()}`);
 
-            return { fit: "contain", position: pos };
+            return { fit: "contain", ...(pos && { position: pos }) };
         };
         case "fill": {
             return { fit: "fill" };

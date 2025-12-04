@@ -17,4 +17,5 @@ export const resolveAspectRatio = (ctx: TransformationResolver, value: AspectRat
 
     ctx.addInstruction("resize", { width: outWidth, height: outHeight });
     ctx.state.applyResize({ width: outWidth, height: outHeight });
+    return;
 };

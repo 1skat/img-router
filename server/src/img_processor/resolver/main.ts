@@ -40,7 +40,6 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
-        console.log(this.sharpInstructionsV2);
         return this.sharpInstructionsV2;
     };
 
@@ -52,15 +51,15 @@ export class TransformationResolver {
         }, out);
     };
 
-    addInstruction(sharpMethod: string, content: any) {
-        if (!this.sharpInstructions[sharpMethod]) this.sharpInstructions[sharpMethod] = {};
-        Object.assign(this.sharpInstructions[sharpMethod], content);
-    };
+    // addInstruction(sharpMethod: string, content: any) {
+    //     if (!this.sharpInstructions[sharpMethod]) this.sharpInstructions[sharpMethod] = {};
+    //     Object.assign(this.sharpInstructions[sharpMethod], content);
+    // };
+
 
     addInstructionV2(sharpMethod: string, content: any) {
         this.sharpInstructionsV2.push({ method: sharpMethod, content: content });
     };
-
 }
 // private resolveResize(value: ResizeParams) {
 //     const { width, height } = value;

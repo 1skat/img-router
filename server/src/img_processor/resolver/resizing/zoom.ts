@@ -10,6 +10,7 @@ export function resolveZoom(ctx: TransformationResolver, value: ZoomParams) {
     const scaledWidth = Math.round(origW * zoom);
     const scaledHeight = Math.round(origH * zoom);
 
+    // center positioning
     const left = Math.round((scaledWidth - origW) / 2);
     const top = Math.round((scaledHeight - origH) / 2);
 
