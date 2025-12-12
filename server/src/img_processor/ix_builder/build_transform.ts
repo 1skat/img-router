@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { json } from "zod";
 
 // export function buildSharpTransformer(chains: any) {
 //     try {
@@ -42,9 +43,10 @@ export function buildSharpTransformerV3(chains: any) {
     try {
         return chains.map((chain: any) => {
             return (instance: any) => {
+                let c = 1;
                 for (const { method, content } of chain) {
+                    console.log(`#${c++}: method ${method} content: ${JSON.stringify(content)}`);
                     if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
-                    // instance = fn.call(instance, ...(content.options) ? ...Object.values(content) : [content]);
                     if (content && content.options) instance = instance[method](...Object.values(content));
                     else instance = instance[method](content)
                 }
@@ -56,4 +58,16 @@ export function buildSharpTransformerV3(chains: any) {
         throw new Error(`build_sharp_transformer: ${err} `);
     };
 };
+
+export function buildSharpTransformerV4(chains: any) {
+    try {
+        return chains.map((chain: any) => {
+            for (const { method, content } of chain) {
+
+            }
+        })
+    } catch (err) {
+        throw new Error(`build_sharp_transformer: ${err} `);
+    };
+}
 

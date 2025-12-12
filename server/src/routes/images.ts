@@ -76,6 +76,7 @@ export const imageRoutes = new Elysia()
         // 1: prase parameter transformations
         if (!trString) return;
         const [parsedParamChains, paramErr] = tryCatch(() => new ParameterParser().parseParams(trString));
+        // console.log(parsedParamChains);
         if (paramErr) {
             set.status = 400;
             return { error: paramErr.message }
@@ -92,13 +93,23 @@ export const imageRoutes = new Elysia()
         // 3: build sharp transformers from insructions
         const transformers = buildSharpTransformerV3(sharpInstructionChain);
 
-        for (const applyTransform of transformers) sharpInstance = applyTransform(sharpInstance);
+
+        for (const [i, applyTransform] of transformers.entries()) {
+            sharpInstance = applyTransform(sharpInstance);
+            const {
+                topOffsetPre, leftOffsetPre, widthPre, heightPre,
+                topOffsetPost, leftOffsetPost, widthPost, heightPost,
+                width, height, canvas, position,
+            } = sharpInstance.options;
+            const sliced = { topOffsetPre, leftOffsetPre, widthPre, heightPre, topOffsetPost, leftOffsetPost, widthPost, heightPost, width, height, canvas, position };
+            console.log(sliced);
+        };
 
         set.headers = {
             "Content-Type": "image/png",
         };
         set.status = 200;
-        const outBuffer = await sharpInstance.toBuffer();
 
+        const outBuffer = await sharpInstance.toBuffer();
         return outBuffer;
     });

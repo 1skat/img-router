@@ -3,12 +3,12 @@ import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./image_state";
 import { SharpInsructionMap } from "./sharp_ix_map";
 
-export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, parameterChains: any) {
+export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, funcChains: any) {
     // Shared state for all parameter chains
     const [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
     if (imgStateErr) throw imgStateErr;
 
-    return parameterChains.map(chain => {
+    return funcChains.map(chain => {
         const resolver = new TransformationResolver(imgState, accSettings); // create new per chain
         const [sharpIxs, err] = tryCatch(() => resolver.resolveChain(chain));
         if (err) throw new Error(`resolveChain: ${err.message}`);
@@ -20,22 +20,22 @@ export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings:
 export class TransformationResolver {
     public state: ImageState;
     public accountSettings: any;
-    public transformsReq: Record<string, any>;
+    public reqFunctions: Record<string, any>;
     public sharpInstructions: Record<string, any>;
     public sharpInstructionsV2: { method: string, content: any }[];
 
     constructor(imgState: ImageState, accountSettings?: any) {
         this.state = imgState;
         this.accountSettings = accountSettings;
-        this.transformsReq = {};
+        this.reqFunctions = {};
         this.sharpInstructions = {};
         this.sharpInstructionsV2 = [];
     };
 
     resolveChain(chain: any) {
-        this.transformsReq = chain; // load requested transformations to context map
+        this.reqFunctions = chain; // load requested transformations to context map
 
-        for (const [method, content] of Object.entries(this.transformsReq)) {
+        for (const [method, content] of Object.entries(this.reqFunctions)) {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
             if (handler) handler(this, content);
         };
@@ -43,21 +43,15 @@ export class TransformationResolver {
         return this.sharpInstructionsV2;
     };
 
-    getMods(modifiers: string[]) {
+    getReqFunctions(modifiers: string[]) {
         const out: Record<string, any> = {};
         return modifiers.reduce((acc, mod) => {
-            acc[mod] = this.transformsReq[mod];
+            acc[mod] = this.reqFunctions[mod];
             return acc;
         }, out);
     };
 
-    // addInstruction(sharpMethod: string, content: any) {
-    //     if (!this.sharpInstructions[sharpMethod]) this.sharpInstructions[sharpMethod] = {};
-    //     Object.assign(this.sharpInstructions[sharpMethod], content);
-    // };
-
-
-    addInstructionV2(sharpMethod: string, content: any) {
+    addInstruction(sharpMethod: string, content: any) {
         this.sharpInstructionsV2.push({ method: sharpMethod, content: content });
     };
 }

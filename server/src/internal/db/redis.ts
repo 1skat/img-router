@@ -66,7 +66,6 @@ export async function getAccountSettings(accountId: string) {
 
     const data = await rdClient.hgetall(`account:${accountId}:settings`);
     if (!data || Object.keys(data).length === 0) throw new Error(`failed to get account settings: ${accountId}`);
-    console.log(`data: ${JSON.stringify(data)}`);
 
     const parsed = AccountSettingsSchema.safeParse(data);
     if (!parsed.success) throw new Error(`Received invalid settings`);

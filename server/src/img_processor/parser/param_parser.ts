@@ -15,7 +15,7 @@ export class ParameterParser {
         const chains = trParams.split("::");
 
         return chains.map((c) => {
-            const [parsedChain, err] = tryCatch(() => this.parseChain(c));
+            const [parsedChain, err] = tryCatch(() => this.parseChainV2(c));
             if (err) throw new Error(`parse_params: ${err.message}`);
 
             const transformationMap: Record<string, any> = {};
@@ -49,5 +49,50 @@ export class ParameterParser {
 
                 return [specKey, handlerResult];
             });
+    };
+
+    parseChainV2(chain: string) {
+        const parsedChainRes = chain.match(/[a-zA-z]+\([^)]*\)/g)
+        if (!parsedChainRes) throw new Error("invalid params");
+
+        const imgFunctions = parsedChainRes.map(param => {
+            const match = param.match(/^([a-zA-Z]+)(\([^)]*\))$/)
+            if (!match) throw new Error(`Invalid param: ${param}`);
+
+            return [match[1]/*key method*/, match[2]/*value params*/];
+        });
+
+        return imgFunctions
+            .map(([m, c]) => {
+                const spec = this.parameterMap[m];
+                if (!spec) throw new Error(`parse_param: Unknown key '${m}'`);
+
+                const [handlerResult, handlerErr] = tryCatch(() => spec.handler(c?.replace(/^\(|\)$/g, "")));
+                if (handlerErr) throw new Error(`parse_chainV2: ${handlerErr.message}`);
+                const specKey = spec.k;
+
+                return [specKey, handlerResult]
+            });
+
+
+        // return parameters
+        //     .map(p => p.trim())
+        //     .filter(Boolean)
+        //     .map((param) => {
+        //         console.log(param);
+        //         const match = param.match(/^([a-zA-Z]+)\((.*)\)$/);
+        //         if (!match) throw new Error("Invalid param format");
+
+        //         const [_, key, val] = match;
+        //         console.log(match);
+        //         // const spec = this.parameterMap[key];
+        //         // if (!spec) throw new Error(`parse_param: Unknown key '${key}'`);
+
+        //         // const [handlerResult, handlerErr] = tryCatch(() => spec.handler(val));
+        //         // if (handlerErr) throw new Error(`parse_chain: ${handlerErr.message}`);
+        //         // const specKey = spec.k;
+
+        //         // return [specKey, handlerResult];
+        //     });
     };
 };

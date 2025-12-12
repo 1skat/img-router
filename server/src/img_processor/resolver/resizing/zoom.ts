@@ -1,19 +1,69 @@
-import type { ZoomParams } from "@/img_processor/types";
+import type { ZoomParams, ZoomType } from "@/img_processor/types";
 import type { TransformationResolver } from "../main";
 
-export function resolveZoom(ctx: TransformationResolver, value: ZoomParams) {
-    const { zoom } = value;
+export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
+    const { zoom, x, y } = data;
     if (!zoom) throw new Error("zoom value undefined");
 
-    const { width: origW, height: origH } = ctx.state;
+    const { width: stateW, height: stateH, top: stateTop, left: stateLeft } = ctx.state;
+    const { origWidth: origW, origHeight: origH, aspectRatio: ar } = ctx.state;
 
-    const scaledWidth = Math.round(origW * zoom);
-    const scaledHeight = Math.round(origH * zoom);
+    const scaledX = stateW / origW; // 1
+    const scaledY = stateH / origH; // 0.33
 
-    // center positioning
-    const left = Math.round((scaledWidth - origW) / 2);
-    const top = Math.round((scaledHeight - origH) / 2);
+    if (scaledX > scaledY) { // constrained by height
+        const scaledWidth = Math.round(stateW * zoom); // 800 * 2 -> 1600
+        const scaledHeight = Math.round((stateW / ar) * zoom); // 595.33 * 2 -> 1191
 
-    ctx.addInstructionV2("resize", { width: scaledWidth, height: scaledHeight });
-    ctx.addInstructionV2("extract", { left: left, top: top, width: origW, height: origH });
+        const left = Math.round((scaledWidth - stateW) / 2);
+        const scaledY = stateTop !== undefined ? stateTop * zoom : undefined;
+        const top = scaledY !== undefined ? Math.round(scaledY + (((stateH * zoom) - stateH) / 2)) : Math.round((scaledHeight - stateH) / 2); // e.g 240 + (zoomed stateH difference)
+
+        // console.log(`scaledWidth: ${scaledWidth} scaledHeight: ${scaledHeight} left: ${left} scaledY: ${scaledY} top: ${top}`);
+        ctx.addInstruction("resize", { width: scaledWidth, fit: "outside" });
+        ctx.addInstruction("extract", {
+            left: left, top: top, width: stateW, height: stateH,
+        });
+    }
+    else if (scaledY > scaledX) {
+        const scaledWidth = Math.round((stateH * ar) * zoom);
+        const scaledHeight = Math.round(stateH * zoom);
+
+        const scaledX = stateLeft !== undefined ? stateLeft * zoom : undefined;
+        const left = scaledX !== undefined ? Math.round(scaledX + (((stateW * zoom) - stateW) / 2)) : Math.round((scaledWidth - stateW) / 2);
+        const top = Math.round((scaledHeight - stateH) / 2);
+        // console.log(`scaledWidth: ${scaledWidth} scaledHeight: ${scaledHeight} left: ${left}`);
+        ctx.addInstruction("resize", { height: scaledHeight, fit: "outside" });
+        ctx.addInstruction("extract", {
+            left: left, top: top, width: stateW, height: stateH,
+        });
+    }
+    else {
+        const scaledWidth = Math.round(stateW * zoom);
+        const scaledHeight = Math.round(stateH * zoom);
+        const left = Math.round((scaledWidth - stateW) / 2);
+        const top = Math.round((scaledHeight - stateH) / 2);
+        ctx.addInstruction("resize", { width: scaledWidth, height: scaledHeight });
+        ctx.addInstruction("extract", {
+            left: left, top: top, width: stateW, height: stateH,
+        });
+    };
+
+    // if (scaledY > scaledX) { // constrained by width
+    //     const scaledWidth = Math.round(stateW * )
+    // }
+
+    // const scaledWidth = Math.round(stateW * zoom); // 1200
+    // const scaledHeight = Math.round((* zoom); // 893
+
+    // const left = Math.round((scaledWidth - stateW) / 2);
+    // const maxTop = scaledHeight - stateH; // 103
+    // const scaledTop = zoom * stateTop; // 593
+    // const top = Math.round(scaledTop + ((maxTop - scaledTop) / 2)); // 593 + (806-593)
+
+    // // console.log("stateW:", stateW, "stateH:", stateH, "left:", left, "top:", top, "stateTop:", stateTop, "stateLeft", stateLeft, "scaledWidth", scaledWidth, "scaledHeight:", scaledHeight);
+    // ctx.addInstruction("resize", { width: scaledWidth, fit: "outside" }); // fit to match original AR
+    // ctx.addInstruction("extract", {
+    //     left: left, top: top, width: stateW, height: stateH,
+    // });
 };
