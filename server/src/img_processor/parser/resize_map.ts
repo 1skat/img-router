@@ -1,57 +1,21 @@
 import tinycolor from "tinycolor2";
-import { ZoomSchema, type AspectRatioParams, type BackgroundParams, type ExtractParams, type FitParams, type PaddingParams, type ResizeParams, type ZoomParams } from "@/img_processor/types";
-import { optionHandlers } from "./resizing/options_map";
+import { ExtractSchema, ResizeSchema, ZoomSchema, type AspectRatioParams, type BackgroundParams, type ExtractParams, type FitParams, type PaddingParams, type ResizeParams, type ZoomParams } from "@/img_processor/types";
+import { functionHandlers } from "./options_map";
 import { tryCatch } from "@/utils/try-catch";
 import z from "zod";
 
 export const resizeParametersV2 = {
     extr: {
         k: "extract",
-        handler: extractParser,
+        parser: extractParser,
     },
     rs: {
         k: "resize",
-        handler: resizeParser,
+        parser: resizeParser,
     },
     z: {
         k: "zoom",
-        handler: zoomParser,
-    },
-    // w: {
-    //     k: "resize",
-    //     handler: resizeWidthHandler,
-    // },
-    // h: {
-    //     k: "resize",
-    //     handler: resizeHeightHandler,
-    // },
-    // x: {
-    //     k: "position",
-    //     handler: xAxisHandler,
-    // },
-    // y: {
-    //     k: "position",
-    //     handler: yAxisHandler,
-    // },
-    // cr: {
-    //     k: "extract",
-    //     handler: extractImageHandler,
-    // },
-    // fit: {
-    //     k: "fit",
-    //     handler: fitImageHandler,
-    // },
-    pad: {
-        k: "padding",
-        handler: padImageHandler,
-    },
-    // bg: {
-    //     k: "background",
-    //     handler: backgroundHandler,
-    // },
-    ar: {
-        k: "aspectRatio",
-        handler: aspectRatioImaegHandler,
+        parser: zoomParser,
     },
 };
 
@@ -262,146 +226,99 @@ function padImageHandler(vals: string): PaddingParams {
 
 function extractParser(data: string) {
     if (!data.trim()) throw new Error("extract_image_handler: parameter required after `extr`");
-    const ExtractDataSchema = z.object({
-        width: z.number().optional(),
-        height: z.number().optional(),
-        x: z.number().optional(),
-        y: z.number().optional(),
-    });
-
-    try {
-        const extracted: Record<string, any> = {};
-        const args = data.split(",").map(arg => arg.trim());
-        const [width, height] = args.filter(p => !p.includes(":"));
-        const opts = args.filter(p => p.includes(":"));
-
-        parseAndMerge("w", width, extracted);
-        parseAndMerge("h", height, extracted);
-
-        for (const arg of opts) {
-            const [k, v] = arg.split(":").map(a => a.trim());
-            if (!k || !v) throw new Error(`Invalid format: "${arg}". Expected "key:value"`);
-            parseAndMerge(k, v, extracted);
-        };
-
-        return ExtractDataSchema.parse(extracted);
-    } catch (err) {
-        throw new Error(`extractHandler: ${err}`,)
-    };
+    const extracted = parseArgsV2(data, ["w", "h"], "extract")
 };
+
 function resizeParser(data: string) {
     if (!data.trim()) throw new Error("resizeParser: parameter required after `rs`");
+    const extracted = parseArgsV3(data, "resize");
 
-    const ResizeSchema = z.object({
-        width: z.number().optional(),
-        height: z.number().optional(),
-        x: z.number().optional(),
-        y: z.number().optional(),
-        fit: z.enum(["contain", "cover", "fill", "inside", "outside"]).optional(),
-        position: z.enum(["top", "right top", "right", "right bottom", "bottom", "left bottom", "left", "left top"]).optional(),
-        bg: z.object({
-            r: z.number().min(0).max(255),
-            g: z.number().min(0).max(255),
-            b: z.number().min(0).max(255),
-            alpha: z.number().min(0).max(1),
-        }).optional()
-    });
-    const extracted = parseArgs(data, ["w", "h"], "resize");
-
-    return ResizeSchema.parse(extracted);
+    const res = ResizeSchema.parse(extracted);
+    console.log(res);
+    return res;
 };
-
-// try {
-//     const exracted: Record<string, any> = {};
-//     const args = data.split(",").map(arg => arg.trim());
-//     const [width, height] = args.filter(p => !p.includes(":"));
-//     const opts = args.filter(p => p.includes(":"));
-
-//     if (!width && !height) throw new Error("rs: at least one dimension required");
-
-//     parseAndMerge("w", width, exracted);
-//     parseAndMerge("h", height, exracted);
-
-//     for (const opt of opts) {
-//         const [k, v] = opt.split(":").map(o => o.trim());
-//         if (!k || !v) throw new Error(`Invalid format: "${opt}". Expected "key:value"`);
-//         parseAndMerge(k, v, exracted);
-//     };
-
-//     return ResizeSchema.parse(exracted);
-// } catch (err) {
-//     throw new Error(`resizeHandler: ${err}`,);
-// }
 
 function zoomParser(data: string) {
     if (!data.trim()) throw new Error("zoomParser: parameter required after `z`");
-
-    const extracted = parseArgs(data, ["z"], "zoom");
+    const extracted = parseArgsV3(data, "zoom");
 
     return ZoomSchema.parse(extracted);
 };
-// try {
-//     const exracted: Record<string, any> = {};
-//     const args = data.split(",").map(arg => arg.trim());
-//     const [zoom] = args.filter(p => !p.includes(":"));
-//     const opts = args.filter(p => p.includes(":"));
 
-//     if (!zoom) throw new Error(`zoom value undefined`);
+// function parseArgsV2(data: string, inputKeys: string[], fnName: string) {
+//     const extracted: Record<string, any> = {};
+//     const parseAndMerge = (key: string, val: string) => {
+//         if (val === "_") return;
 
-//     parseAndMerge("z", zoom, exracted);
+//         const funcHandler = functionHandlers[fnName]; // map[zoom], map[resize]
+//         if (!funcHandler) throw new Error(`Function handlers not found: ${fnName}`);
 
-//     for (const opt of opts) {
-//         const [k, v] = opt.split(":").map(o => o.trim());
-//         if (!k || !v) throw new Error(`Invalid format: "${opt}". Expected "key:value"`);
-//         parseAndMerge(k, v, exracted);
+//         const argHandler = funcHandler[key] // e.g resize[w] = resizeHandler
+//         if (!argHandler) throw new Error(`Unknown argument handler: ${key}`);
+
+//         const [parsedValue, err] = tryCatch(() => argHandler(val));
+//         if (err) throw new Error(`${funcHandler}[${key}]: ${argHandler}(${val}): ${err.message}`);
+//         Object.assign(extracted, { [key]: parsedValue });
 //     };
 
-//     return ZoomSchema.parse(exracted);
-// } catch (err) {
-//     throw new Error(`zoomParser: ${err}`,);
-// }
+//     const args = data.split(",").map(arg => arg.trim());
+//     const reqParams = args.filter(p => (!p.includes(":")));
+//     const optParams = args.filter(p => (p.includes(":")));
+//     inputKeys.forEach((key, i) => {
+//         if (reqParams[i]) parseAndMerge(key, reqParams[i]);
+//     });
 
-// function parseAndMerge(key: string, val: string, extracted: Record<string, any>) {
-//     if (val === "_") return;
-
-//     const spec = optionHandlers[key];
-//     if (!spec) throw new Error(`Unknown handler: ${key}`);
-
-//     const [parsed, err] = tryCatch(() => spec.handler(val));
-//     if (err) throw new Error(`parsed arg: ${err.message}`);
-//     Object.assign(extracted, parsed);
+//     for (const opt of optParams) {
+//         const [k, v] = opt.split(":").map(o => o.trim());
+//         if (!k || !v) throw new Error(`${fnName}: Invalid option format: "${opt}". Expected "key:value"`);
+//         parseAndMerge(k, v);
+//     };
+//     return extracted;
 // };
 
-function parseArgs(data: string, inputKeys: string[], fnName: string) {
+function parseArgsV3(data: string, fnName: string) {
     const extracted: Record<string, any> = {};
-    const parseAndMerge = (key: string, val: string) => {
+    const funcHandler = functionHandlers[fnName];
+    if (!funcHandler) throw new Error(`Function handlers not found: ${fnName}`);
+
+    const parseArgs = (key: string, val: string, handlers: Record<string, Function>) => {
         if (val === "_") return;
 
-        const spec = optionHandlers[key];
-        if (!spec) throw new Error(`Unknown handler: ${key}`);
+        const argHandler = handlers[key] // e.g resize[w] = resizeHandler
+        if (!argHandler) throw new Error(`Unknown argument handler: ${key}`);
 
-        const [parsed, err] = tryCatch(() => spec.handler(val));
-        if (err) throw new Error(`parsed arg: ${err.message}`);
-        Object.assign(extracted, parsed);
+        const [parsedValue, err] = tryCatch(() => argHandler(val));
+        if (err) throw new Error(`${funcHandler}[${key}]: ${argHandler}(${val}): ${err.message}`);
+        Object.assign(extracted, { [key]: parsedValue });
     };
 
-    try {
-        const args = data.split(",").map(arg => arg.trim());
-        const reqParams = args.filter(p => (!p.includes(":")));
-        const optParams = args.filter(p => (p.includes(":")));
+    const { mainParams, optionalParams } = getFuncParams(funcHandler);
+    console.log(mainParams, optionalParams);
 
-        inputKeys.forEach((key, i) => {
-            if (reqParams[i]) parseAndMerge(key, reqParams[i]);
-        });
+    const argsArray = data.split(",").map(arg => arg.trim());
+    const args = argsArray.filter(a => !a.includes(":"));
+    const kwargs = argsArray.filter(a => a.includes(":"));
 
-        for (const opt of optParams) {
-            const [k, v] = opt.split(":").map(o => o.trim());
-            if (!k || !v) throw new Error(`${fnName}: Invalid option format: "${opt}". Expected "key:value"`);
-            parseAndMerge(k, v);
-        };
+    mainParams.forEach((p, i) => {
+        const val = args[i];
+        if (val === undefined) throw new Error(`${fnName}: ${mainParams.length} arguments required: missng '${mainParams[i]}' or '_'`);
+        if (args[i]) parseArgs(p, args[i], funcHandler);
+    });
 
-        return extracted;
-    } catch (err) {
-        throw new Error(`parseArgs: ${err}`);
+    for (const opt of kwargs) {
+        const [k, v] = opt.split(":").map(o => o.trim());
+        if (!k || !v) throw new Error(`${fnName}: Invalid option format: "${opt}".Expected "key:value"`);
+        if (!optionalParams.includes(k)) throw new Error(`${fnName}: invalid option param: "${k}"`);
+        parseArgs(k, v, funcHandler.opts);
     };
+
+    return extracted;
 };
+
+function getFuncParams(handler: Record<string, Function>) {
+    const { opts = {}, ...mainParams } = handler;
+    return {
+        mainParams: Object.keys(mainParams),
+        optionalParams: Object.keys(opts),
+    };
+}

@@ -14,12 +14,12 @@ import type sharp from "sharp";
 function handleBothSides(ctx: TransformationResolver, dimensions: { width: number, height: number }, opts: ResizeType) {
     const out: ResizeOptions = {};
     const { width, height } = dimensions;
-    const { fit, position, bg, x, y } = opts;
+    const { fit, bg, x, y } = opts;
 
     out.width = width;
     out.height = height;
-    out.fit = fit;
-    out.position = position;
+    out.fit = fit?.mode
+    out.position = fit?.position;
     out.background = bg;
 
     // if (extract) {
@@ -190,7 +190,7 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
 
 
 export const resolveResize = (ctx: TransformationResolver, data: ResizeType): void => {
-    const { width, height, x, y } = data;
+    const { w: width, h: height, x, y } = data;
     if (!width && !height) throw new Error("resize: at least one dimension required");
 
     if (width && height) return handleBothSides(ctx, { width, height }, data);

@@ -102,7 +102,7 @@ export const imageRoutes = new Elysia()
                 width, height, canvas, position,
             } = sharpInstance.options;
             const sliced = { topOffsetPre, leftOffsetPre, widthPre, heightPre, topOffsetPost, leftOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            console.log(sliced);
+            // console.log(sliced);
         };
 
         set.headers = {

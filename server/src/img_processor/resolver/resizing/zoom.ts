@@ -2,24 +2,32 @@ import type { ZoomParams, ZoomType } from "@/img_processor/types";
 import type { TransformationResolver } from "../main";
 
 export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
-    const { zoom, x, y } = data;
+    const { z: zoom, t, l, b, r } = data;
     if (!zoom) throw new Error("zoom value undefined");
 
     const { width: stateW, height: stateH, top: stateTop, left: stateLeft } = ctx.state;
     const { origWidth: origW, origHeight: origH, aspectRatio: ar } = ctx.state;
 
-    const scaledX = stateW / origW; // 1
-    const scaledY = stateH / origH; // 0.33
+    const scaledX = stateW / origW;
+    const scaledY = stateH / origH;
 
     if (scaledX > scaledY) { // constrained by height
-        const scaledWidth = Math.round(stateW * zoom); // 800 * 2 -> 1600
-        const scaledHeight = Math.round((stateW / ar) * zoom); // 595.33 * 2 -> 1191
+        if (l || r) throw new Error("width is full, no x movement allowed");
+        const scaledWidth = Math.round(stateW * zoom);
+        const scaledHeight = Math.round((stateW / ar) * zoom);
 
         const left = Math.round((scaledWidth - stateW) / 2);
         const scaledY = stateTop !== undefined ? stateTop * zoom : undefined;
-        const top = scaledY !== undefined ? Math.round(scaledY + (((stateH * zoom) - stateH) / 2)) : Math.round((scaledHeight - stateH) / 2); // e.g 240 + (zoomed stateH difference)
+        const rawTop = scaledY !== undefined ? Math.round(scaledY + (((stateH * zoom) - stateH) / 2)) : Math.round((scaledHeight - stateH) / 2);
 
-        // console.log(`scaledWidth: ${scaledWidth} scaledHeight: ${scaledHeight} left: ${left} scaledY: ${scaledY} top: ${top}`);
+        const lrMaxPadding = Math.round((scaledWidth - stateW) / 2);
+        const tbMaxPadding = Math.round((scaledHeight - stateH) / 2);
+
+        // TODO: make it for t b
+        // if ((l && l > lrMaxPadding) || (r && r > lrMaxPadding)) throw new Error(`${l ? "l" : "r"} out of boundary. max: ${lrMaxPadding} received: ${l ?? r}`);
+        if ((t && t > tbMaxPadding) || (b && b > tbMaxPadding)) throw new Error(`${t ? "t" : "b"} out of boundary. max: ${tbMaxPadding} received: ${t ?? b}`);
+
+        const top = rawTop - (t ?? 0) + (b ?? 0); // TODO: dont go over the edge 
         ctx.addInstruction("resize", { width: scaledWidth, fit: "outside" });
         ctx.addInstruction("extract", {
             left: left, top: top, width: stateW, height: stateH,
@@ -32,7 +40,6 @@ export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
         const scaledX = stateLeft !== undefined ? stateLeft * zoom : undefined;
         const left = scaledX !== undefined ? Math.round(scaledX + (((stateW * zoom) - stateW) / 2)) : Math.round((scaledWidth - stateW) / 2);
         const top = Math.round((scaledHeight - stateH) / 2);
-        // console.log(`scaledWidth: ${scaledWidth} scaledHeight: ${scaledHeight} left: ${left}`);
         ctx.addInstruction("resize", { height: scaledHeight, fit: "outside" });
         ctx.addInstruction("extract", {
             left: left, top: top, width: stateW, height: stateH,

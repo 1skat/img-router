@@ -67,7 +67,7 @@ export class ParameterParser {
                 const spec = this.parameterMap[m];
                 if (!spec) throw new Error(`parse_param: Unknown key '${m}'`);
 
-                const [handlerResult, handlerErr] = tryCatch(() => spec.handler(c?.replace(/^\(|\)$/g, "")));
+                const [handlerResult, handlerErr] = tryCatch(() => spec.parser(c?.replace(/^\(|\)$/g, "")));
                 if (handlerErr) throw new Error(`parse_chainV2: ${handlerErr.message}`);
                 const specKey = spec.k;
 

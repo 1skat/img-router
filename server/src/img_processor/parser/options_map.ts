@@ -1,36 +1,35 @@
 import tinycolor from "tinycolor2";
-export const optionHandlers = {
-    w: {
-        k: "resize",
-        handler: resizeWidthHandler,
+export const functionHandlers = {
+    extract: {
+        w: resizeHandler,
+        h: resizeHandler,
+        opts: {
+            x: axisHandler,
+            y: axisHandler,
+        },
     },
-    h: {
-        k: "resize",
-        handler: resizeHeightHandler,
+    zoom: {
+        z: zoomImageHandler,
+        opts: {
+            t: zoomPaddingHandler,
+            l: zoomPaddingHandler,
+            b: zoomPaddingHandler,
+            r: zoomPaddingHandler,
+        },
     },
-    x: {
-        k: "position",
-        handler: xAxisHandler,
-    },
-    y: {
-        k: "position",
-        handler: yAxisHandler,
-    },
-    fit: {
-        k: "fit",
-        handler: fitImageHandler,
-    },
-    bg: {
-        k: "background",
-        handler: backgroundHandler,
-    },
-    z: {
-        k: "zoom",
-        handler: zoomImageHandler,
+    resize: {
+        w: resizeHandler,
+        h: resizeHandler,
+        opts: {
+            x: axisHandler,
+            y: axisHandler,
+            fit: fitImageHandler,
+            bg: backgroundHandler,
+        },
     },
 };
 
-function xAxisHandler(vals: string) {
+function axisHandler(vals: string) {
     if (!vals.trim()) throw new Error("x_axis_image_handler: parameter required after `x`");
 
     const match = vals.match(/^\d+$/); // e.g 130
@@ -39,34 +38,10 @@ function xAxisHandler(vals: string) {
     const num = parseInt(match[0], 10);
     if (isNaN(num) || num < 0) throw new Error("x must be >= 0");
 
-    return { x: num };
-}
-
-function yAxisHandler(vals: string) {
-    if (!vals.trim()) throw new Error("y_axis_image_handler: parameter required after `y`");
-
-    const match = vals.match(/^\d+$/); // e.g 150
-    if (!match) throw new Error("y value undefined");
-
-    const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 0) throw new Error("y must be >= 0");
-
-    return { y: num };
-}
-
-function resizeWidthHandler(vals: string) {
-    if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
-
-    const match = vals.match(/^\d+$/); // e.g 400
-    if (!match) throw new Error(`invalid input format. expected: , got: ${vals}`);
-
-    const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("width must be >= 1");
-
-    return { width: num };
+    return num;
 };
 
-function resizeHeightHandler(vals: string) {
+function resizeHandler(vals: string) {
     if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
 
     const match = vals.match(/^\d+$/); // e.g 350
@@ -75,7 +50,7 @@ function resizeHeightHandler(vals: string) {
     const num = parseInt(match[0], 10);
     if (isNaN(num) || num < 1) throw new Error("height must be >= 1");
 
-    return { height: num };
+    return num;
 };
 
 function fitImageHandler(vals: string) {
@@ -99,16 +74,16 @@ function fitImageHandler(vals: string) {
             };
             const pos = positionMap[position?.trim()];
 
-            return { fit: "contain", ...(pos && { position: pos }) };
+            return { mode: "contain", ...(pos && { position: pos }) };
         };
         case "fill": {
-            return { fit: "fill" };
+            return { mode: "fill" };
         }
         case "in": {
-            return { fit: "inside" };
+            return { mode: "inside" };
         }
         case "out": {
-            return { fit: "outside" };
+            return { mode: "outside" };
         }
         default: throw new Error(`Unknown fit mode: ${mode}`);
     };
@@ -125,7 +100,7 @@ function backgroundHandler(val: string) {
 
     const rgb = color.toRgb();
 
-    return { bg: { r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.a } };
+    return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: rgb.a };
 };
 
 function zoomImageHandler(vals: string) {
@@ -139,5 +114,16 @@ function zoomImageHandler(vals: string) {
 
     if (zoomNum < 1) throw new Error("Zoom factor must be >= 1");
 
-    return { zoom: zoomNum };
+    return zoomNum;
+};
+
+function zoomPaddingHandler(vals: string) {
+    if (!vals.trim()) throw new Error("zoom_padding_handler: parameter required");
+    const match = vals.match(/^([1-9]\d*)$/);
+    if (!match) throw new Error(`invalid zoom parameters: ${vals}`);
+
+    const [_, p] = match;
+    const pNum = parseFloat(p);
+
+    return pNum;
 };
