@@ -11,10 +11,8 @@ export const functionHandlers = {
     zoom: {
         z: zoomImageHandler,
         opts: {
-            t: zoomPaddingHandler,
-            l: zoomPaddingHandler,
-            b: zoomPaddingHandler,
-            r: zoomPaddingHandler,
+            vp: zoomPaddingHanler,
+            hp: zoomPaddingHanler,
         },
     },
     resize: {
@@ -117,12 +115,12 @@ function zoomImageHandler(vals: string) {
     return zoomNum;
 };
 
-function zoomPaddingHandler(vals: string) {
+function zoomPaddingHanler(vals: string) {
     if (!vals.trim()) throw new Error("zoom_padding_handler: parameter required");
-    const match = vals.match(/^([1-9]\d*)$/);
-    if (!match) throw new Error(`invalid zoom parameters: ${vals}`);
+    const match = vals.match(/^-?[1-9]\d*$/);
+    if (!match) throw new Error(`invalid zoom padding parameters: ${vals}`);
 
-    const [_, p] = match;
+    const [p] = match;
     const pNum = parseFloat(p);
 
     return pNum;

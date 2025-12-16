@@ -67,7 +67,7 @@ export const imageRoutes = new Elysia()
         // Production:
         // const buf = await imgStream.transformToByteArray();
         // Dev:
-        const imgPath = path.join(import.meta.dir, "audi_main.png");
+        const imgPath = path.join(import.meta.dir, "evo_main.png");
         const buf = fs.readFileSync(imgPath);
 
         let sharpInstance = sharp(buf);

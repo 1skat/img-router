@@ -2,7 +2,7 @@ import type { ZoomParams, ZoomType } from "@/img_processor/types";
 import type { TransformationResolver } from "../main";
 
 export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
-    const { z: zoom, t, l, b, r } = data;
+    const { z: zoom, vp, hp } = data;
     if (!zoom) throw new Error("zoom value undefined");
 
     const { width: stateW, height: stateH, top: stateTop, left: stateLeft } = ctx.state;
@@ -11,23 +11,22 @@ export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
     const scaledX = stateW / origW;
     const scaledY = stateH / origH;
 
+    const scaledWidth = Math.round(stateW * zoom);
+    const scaledHeight = Math.round((stateW / ar) * zoom);
+
     if (scaledX > scaledY) { // constrained by height
-        if (l || r) throw new Error("width is full, no x movement allowed");
-        const scaledWidth = Math.round(stateW * zoom);
-        const scaledHeight = Math.round((stateW / ar) * zoom);
+        const rawLeft = Math.round((scaledWidth - stateW) / 2);
+        const scaledStateTop = stateTop !== undefined ? stateTop * zoom : undefined;
+        const rawTop = scaledStateTop !== undefined ? Math.round(scaledY + (((stateH * zoom) - stateH) / 2)) : Math.round((scaledHeight - stateH) / 2);
 
-        const left = Math.round((scaledWidth - stateW) / 2);
-        const scaledY = stateTop !== undefined ? stateTop * zoom : undefined;
-        const rawTop = scaledY !== undefined ? Math.round(scaledY + (((stateH * zoom) - stateH) / 2)) : Math.round((scaledHeight - stateH) / 2);
+        const tbMaxPadding = Math.round(((stateH * zoom) - stateH) / 2); // extra pxs from scaling the state height
+        const lrMaxPadding = Math.round(((stateW * zoom) - stateW) / 2);
 
-        const lrMaxPadding = Math.round((scaledWidth - stateW) / 2);
-        const tbMaxPadding = Math.round((scaledHeight - stateH) / 2);
+        if (vp !== undefined && Math.abs(vp) > tbMaxPadding) throw new Error(`vertical padding out of boundary. max: ${vp < 0 ? -tbMaxPadding : tbMaxPadding} received: ${vp}`);
+        if (hp !== undefined && Math.abs(hp) > lrMaxPadding) throw new Error(`horizontal padding out of boundary. max: ${hp < 0 ? -lrMaxPadding : tbMaxPadding} received: ${hp}`);
 
-        // TODO: make it for t b
-        // if ((l && l > lrMaxPadding) || (r && r > lrMaxPadding)) throw new Error(`${l ? "l" : "r"} out of boundary. max: ${lrMaxPadding} received: ${l ?? r}`);
-        if ((t && t > tbMaxPadding) || (b && b > tbMaxPadding)) throw new Error(`${t ? "t" : "b"} out of boundary. max: ${tbMaxPadding} received: ${t ?? b}`);
-
-        const top = rawTop - (t ?? 0) + (b ?? 0); // TODO: dont go over the edge 
+        const top = rawTop - (vp ?? 0);
+        const left = rawLeft - (hp ?? 0);
         ctx.addInstruction("resize", { width: scaledWidth, fit: "outside" });
         ctx.addInstruction("extract", {
             left: left, top: top, width: stateW, height: stateH,
@@ -37,12 +36,12 @@ export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
         const scaledWidth = Math.round((stateH * ar) * zoom);
         const scaledHeight = Math.round(stateH * zoom);
 
-        const scaledX = stateLeft !== undefined ? stateLeft * zoom : undefined;
-        const left = scaledX !== undefined ? Math.round(scaledX + (((stateW * zoom) - stateW) / 2)) : Math.round((scaledWidth - stateW) / 2);
         const top = Math.round((scaledHeight - stateH) / 2);
+        const scaledX = stateLeft !== undefined ? stateLeft * zoom : undefined;
+        const rawLeft = scaledX !== undefined ? Math.round(scaledX + (((stateW * zoom) - stateW) / 2)) : Math.round((scaledWidth - stateW) / 2);
         ctx.addInstruction("resize", { height: scaledHeight, fit: "outside" });
         ctx.addInstruction("extract", {
-            left: left, top: top, width: stateW, height: stateH,
+            left: rawLeft, top: top, width: stateW, height: stateH,
         });
     }
     else {
@@ -74,3 +73,4 @@ export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
     //     left: left, top: top, width: stateW, height: stateH,
     // });
 };
+

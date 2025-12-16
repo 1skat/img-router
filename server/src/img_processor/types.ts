@@ -32,16 +32,14 @@ export type ResizeType = z.infer<typeof ResizeSchema>;
 
 export const ZoomSchema = z.object({
     z: z.number().min(1),
-    t: z.number().min(1).optional(),
-    l: z.number().min(1).optional(),
-    b: z.number().min(1).optional(),
-    r: z.number().min(1).optional(),
+    vp: z.number().optional(),
+    hp: z.number().optional(),
 });
 export type ZoomType = z.infer<typeof ZoomSchema>;
 
 export const ExtractSchema = z.object({
     w: z.number().optional(),
-    ht: z.number().optional(),
+    h: z.number().optional(),
     x: z.number().optional(),
     y: z.number().optional(),
 });

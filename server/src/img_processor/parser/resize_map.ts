@@ -226,16 +226,16 @@ function padImageHandler(vals: string): PaddingParams {
 
 function extractParser(data: string) {
     if (!data.trim()) throw new Error("extract_image_handler: parameter required after `extr`");
-    const extracted = parseArgsV2(data, ["w", "h"], "extract")
+    const extracted = parseArgsV3(data, "extract");
+
+    return ExtractSchema.parse(extracted);
 };
 
 function resizeParser(data: string) {
     if (!data.trim()) throw new Error("resizeParser: parameter required after `rs`");
     const extracted = parseArgsV3(data, "resize");
 
-    const res = ResizeSchema.parse(extracted);
-    console.log(res);
-    return res;
+    return ResizeSchema.parse(extracted);
 };
 
 function zoomParser(data: string) {
@@ -293,7 +293,6 @@ function parseArgsV3(data: string, fnName: string) {
     };
 
     const { mainParams, optionalParams } = getFuncParams(funcHandler);
-    console.log(mainParams, optionalParams);
 
     const argsArray = data.split(",").map(arg => arg.trim());
     const args = argsArray.filter(a => !a.includes(":"));
@@ -302,7 +301,8 @@ function parseArgsV3(data: string, fnName: string) {
     mainParams.forEach((p, i) => {
         const val = args[i];
         if (val === undefined) throw new Error(`${fnName}: ${mainParams.length} arguments required: missng '${mainParams[i]}' or '_'`);
-        if (args[i]) parseArgs(p, args[i], funcHandler);
+
+        parseArgs(p, val, funcHandler);
     });
 
     for (const opt of kwargs) {
