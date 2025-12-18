@@ -97,12 +97,12 @@ export const imageRoutes = new Elysia()
         for (const [i, applyTransform] of transformers.entries()) {
             sharpInstance = applyTransform(sharpInstance);
             const {
-                topOffsetPre, leftOffsetPre, widthPre, heightPre,
-                topOffsetPost, leftOffsetPost, widthPost, heightPost,
+                leftOffsetPre, topOffsetPre, topOffset, widthPre, heightPre,
+                leftOffsetPost, topOffsetPost, widthPost, heightPost,
                 width, height, canvas, position,
             } = sharpInstance.options;
-            const sliced = { topOffsetPre, leftOffsetPre, widthPre, heightPre, topOffsetPost, leftOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            // console.log(sliced);
+            const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position };
+            console.log(sliced);
         };
 
         set.headers = {

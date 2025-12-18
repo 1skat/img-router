@@ -1,5 +1,5 @@
-0. Create an upper function that iterates over chains tuple and pass each array into a class with its own parameter state.
-1. Keep the ImageState global so each chain of instructions produces the final image state.
-3. test the 0th pixel
-
-
+0. Fix the extract + zoom (only works with a single side "_"):
+    * create extra fields in the image state for pre (first extract) post (extract after resize)
+    * create extra fields in the image state for pre width (first extract) post (extract w,h after resize)
+1. Make an ar, pad, 
+2. Write unit tests

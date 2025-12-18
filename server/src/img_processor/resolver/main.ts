@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./image_state";
 import { SharpInsructionMap } from "./sharp_ix_map";
+import { imageStateMap } from "./img_state_map";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, funcChains: any) {
     // Shared state for all parameter chains
@@ -40,6 +41,7 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
+        console.log("final state:", this.state.state);
         return this.sharpInstructionsV2;
     };
 
@@ -52,9 +54,13 @@ export class TransformationResolver {
     };
 
     addInstruction(sharpMethod: string, content: any) {
+        const applier = imageStateMap[sharpMethod];
+        if (!applier) throw new Error(`failed to get state applier for ${sharpMethod}`);
+
+        applier(this.state.state, content);
         this.sharpInstructionsV2.push({ method: sharpMethod, content: content });
     };
-}
+};
 // private resolveResize(value: ResizeParams) {
 //     const { width, height } = value;
 //     if (!width && !height) throw new Error("resize requires at least one dimension");

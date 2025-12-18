@@ -8,14 +8,16 @@ export const resolveExtract = (ctx: TransformationResolver, data: ExtractType): 
     const width = w ?? Math.round(h * ctx.state.aspectRatio);
     const height = h ?? Math.round(w / ctx.state.aspectRatio);
 
-    const left = x ?? Math.round((ctx.state.width - width) / 2);
-    const top = y ?? Math.round((ctx.state.height - height) / 2);
+    const imgWidth = ctx.state.currWidth ?? ctx.state.origWidth;
+    const imgHeight = ctx.state.currHeight ?? ctx.state.origHeight;
 
-    if (left > (ctx.state.width - width)) throw new Error("x out of boundary");
-    if (top > (ctx.state.height - height)) throw new Error("y out of boundary");
+    const left = x ?? Math.round((imgWidth - width) / 2);
+    const top = y ?? Math.round((imgHeight - height) / 2);
+
+    if (left > (imgWidth - width)) throw new Error("x out of boundary");
+    if (top > (imgHeight - height)) throw new Error("y out of boundary");
 
     ctx.addInstruction("extract", { left: left, top: top, width: width, height: height });
-    ctx.state.applyResize({ width, height });
-    ctx.state.applyOffest({ left: x, top: y });
+    // ctx.state.applyExtract({ width, height, x: left, y: top });
     return;
 };
