@@ -1,8 +1,7 @@
 import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./image_state";
-import { SharpInsructionMap } from "./sharp_ix_map";
-import { imageStateMap } from "./img_state_map";
+import { ImageStateMap, SharpArgsMap, SharpInsructionMap } from "./hashmaps";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, funcChains: any) {
     // Shared state for all parameter chains
@@ -53,14 +52,18 @@ export class TransformationResolver {
         }, out);
     };
 
-    addInstruction(sharpMethod: string, content: any) {
-        const applier = imageStateMap[sharpMethod];
-        if (!applier) throw new Error(`failed to get state applier for ${sharpMethod}`);
+    addInstruction(sharpMethod: string, methodArgs: any) {
+        const applier = ImageStateMap[sharpMethod];
+        if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
+        applier(this.state.state, methodArgs);
 
-        applier(this.state.state, content);
-        this.sharpInstructionsV2.push({ method: sharpMethod, content: content });
+        const sharpArgsHandler = SharpArgsMap[sharpMethod];
+        if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);
+        const sharpArgs = sharpArgsHandler(methodArgs);
+        this.sharpInstructionsV2.push({ method: sharpMethod, content: sharpArgs });
     };
 };
+
 // private resolveResize(value: ResizeParams) {
 //     const { width, height } = value;
 //     if (!width && !height) throw new Error("resize requires at least one dimension");

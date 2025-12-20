@@ -18,6 +18,5 @@ export const resolveExtract = (ctx: TransformationResolver, data: ExtractType): 
     if (top > (imgHeight - height)) throw new Error("y out of boundary");
 
     ctx.addInstruction("extract", { left: left, top: top, width: width, height: height });
-    // ctx.state.applyExtract({ width, height, x: left, y: top });
     return;
 };

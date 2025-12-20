@@ -1,26 +1,25 @@
 import type sharp from "sharp";
+import type { ImgStateFields } from "../types";
 
-export type ImgStateFields = {
-    preLeftOffset: number | null;
-    preTopOffset: number | null;
-    preWidth: number | null;
-    preHeight: number | null;
-    postLeftOffset: number | null;
-    postTopOffset: number | null;
-    postWidth: number | null;
-    postHeight: number | null;
-    rsWidth: number | null;
-    rsHeight: number | null;
-    origWidth: number;
-    origHeight: number;
-    // topOffset: number | null;
-    // leftOffset: number | null;
-    aspectRatio: number;
-};
+// export type ImgStateFields = {
+//     preLeftOffset: number | null;
+//     preTopOffset: number | null;
+//     preWidth: number | null;
+//     preHeight: number | null;
+//     postLeftOffset: number | null;
+//     postTopOffset: number | null;
+//     postWidth: number | null;
+//     postHeight: number | null;
+//     rsWidth: number | null;
+//     rsHeight: number | null;
+//     origWidth: number;
+//     origHeight: number;
+//     aspectRatio: number;
+// };
 
 
 export class ImageState {
-    private state: ImgStateFields;
+    state: ImgStateFields;
 
     constructor(metadata: sharp.Metadata) {
         if (!metadata.width || !metadata.height || !metadata.format) throw new Error("image metdata missing");
