@@ -16,7 +16,7 @@ export class ParameterParser {
 
         return chains.map((c) => {
             const [parsedChain, err] = tryCatch(() => this.parseChainV2(c));
-            if (err) throw new Error(`parse_params: ${err.message}`);
+            if (err) throw err;
 
             const transformationMap: Record<string, any> = {};
             return parsedChain.reduce((acc, [method, content]) => {
@@ -41,10 +41,10 @@ export class ParameterParser {
 
                 const [_, key, val] = match;
                 const spec = this.parameterMap[key];
-                if (!spec) throw new Error(`parse_param: Unknown key '${key}'`);
+                if (!spec) throw new Error(`Unknown key '${key}'`);
 
                 const [handlerResult, handlerErr] = tryCatch(() => spec.handler(val));
-                if (handlerErr) throw new Error(`parse_chain: ${handlerErr.message}`);
+                if (handlerErr) throw handlerErr;
                 const specKey = spec.k;
 
                 return [specKey, handlerResult];
@@ -65,10 +65,10 @@ export class ParameterParser {
         return imgFunctions
             .map(([m, c]) => {
                 const spec = this.parameterMap[m];
-                if (!spec) throw new Error(`parse_param: Unknown key '${m}'`);
+                if (!spec) throw new Error(`Unknown key '${m}'`);
 
                 const [handlerResult, handlerErr] = tryCatch(() => spec.parser(c?.replace(/^\(|\)$/g, "")));
-                if (handlerErr) throw new Error(`parse_chainV2: ${handlerErr.message}`);
+                if (handlerErr) throw handlerErr;
                 const specKey = spec.k;
 
                 return [specKey, handlerResult]

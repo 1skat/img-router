@@ -288,7 +288,7 @@ function parseArgsV3(data: string, fnName: string) {
         if (!argHandler) throw new Error(`Unknown argument handler: ${key}`);
 
         const [parsedValue, err] = tryCatch(() => argHandler(val));
-        if (err) throw new Error(`${funcHandler}[${key}]: ${argHandler}(${val}): ${err.message}`);
+        if (err) throw err;
         Object.assign(extracted, { [key]: parsedValue });
     };
 
