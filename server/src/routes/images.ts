@@ -67,7 +67,7 @@ export const imageRoutes = new Elysia()
         // Production:
         // const buf = await imgStream.transformToByteArray();
         // Dev:
-        const imgPath = path.join(import.meta.dir, "evo_main.png");
+        const imgPath = path.join(import.meta.dir, "audi_main.png");
         const buf = fs.readFileSync(imgPath);
 
         let sharpInstance = sharp(buf);
@@ -102,7 +102,7 @@ export const imageRoutes = new Elysia()
                 width, height, canvas, position,
             } = sharpInstance.options;
             const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            console.log(sliced);
+            // console.log(sliced);
             // console.log(sharpInstance.options);
         };
 

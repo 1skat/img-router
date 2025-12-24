@@ -312,6 +312,7 @@ function parseArgsV3(data: string, fnName: string) {
         parseArgs(k, v, funcHandler.opts);
     };
 
+    console.log("extracted:", extracted);
     return extracted;
 };
 

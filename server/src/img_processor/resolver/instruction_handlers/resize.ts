@@ -4,14 +4,6 @@ import type { ResizeOptions } from "sharp";
 import type sharp from "sharp";
 import { unescape } from "querystring";
 
-// export const resolveResize1 = (ctx: TransformationResolver, value: ResizeParams): void => {
-//     const { width, height } = value;
-//     if (!width && !height) throw new Error("resize requires at least one dimension");
-
-//     if (width && height) return handleBothSides(ctx, { width, height });
-//     if (width || height) return handleSingleSide(ctx, { width, height });
-// };
-
 function handleBothSides(ctx: TransformationResolver, dimensions: { width: number, height: number }, opts: ResizeType) {
     const out: ResizeOptions = {};
     const { width, height } = dimensions;
@@ -28,7 +20,7 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
         return;
     };
 
-    const { origWidth: origW, origHeight: origH } = ctx.state;
+    const { origWidth: origW, origHeight: origH } = ctx.img.state;
     const scale = Math.max(width / origW, height / origH);
 
     const resizedW = Math.round(origW * scale);
@@ -37,10 +29,10 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     if (x && (width + x) > resizedW) throw new Error(`x out of boundary. Max x: ${resizedW - width}, received: ${x}`);
     if (y && (height + y) > resizedH) throw new Error(`y out of boundary. Max y: ${resizedH - height}, received: ${y}`);
 
-    ctx.addInstruction("resize", { wdith: resizedW, height: resizedH });
+    ctx.addInstruction("resize", { width: resizedW, height: resizedH });
     ctx.addInstruction("extract", {
-        left: x ?? 0,
-        top: y ?? 0,
+        left: x ?? null,
+        top: y ?? null,
         width: width,
         height: height,
     });
@@ -59,9 +51,10 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
 
     if (x || y) throw new Error("no space available for padding");
 
-    const ar = ctx.state.aspectRatio;
+    const ar = ctx.img.state.aspectRatio;
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
+
     ctx.addInstruction("resize", out);
     return;
     // if (aspectRatio) {

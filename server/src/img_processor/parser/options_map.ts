@@ -46,7 +46,7 @@ function resizeHandler(vals: string) {
     if (!match) throw new Error("height undefined");
 
     const num = parseInt(match[0], 10);
-    if (isNaN(num) || num < 1) throw new Error("height must be >= 1");
+    if (isNaN(num) || num < 1) throw new Error("wdith or height must be >= 1");
 
     return num;
 };

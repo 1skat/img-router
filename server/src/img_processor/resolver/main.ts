@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./image_state";
 import { ImageStateMap, SharpArgsMap, SharpInsructionMap } from "./hashmaps";
+import type { AddInstructionType } from "./state_handlers/types";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, funcChains: any) {
     // Shared state for all parameter chains
@@ -18,17 +19,17 @@ export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings:
 };
 
 export class TransformationResolver {
-    public state: ImageState;
+    public img: ImageState;
     public accountSettings: any;
     public reqFunctions: Record<string, any>;
-    public sharpInstructions: Record<string, any>;
+    // public sharpInstructions: Record<string, any>;
     public sharpInstructionsV2: { method: string, content: any }[];
 
     constructor(imgState: ImageState, accountSettings?: any) {
-        this.state = imgState;
+        this.img = imgState;
         this.accountSettings = accountSettings;
         this.reqFunctions = {};
-        this.sharpInstructions = {};
+        // this.sharpInstructions = {};
         this.sharpInstructionsV2 = [];
     };
 
@@ -40,7 +41,7 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
-        console.log("final state:", this.state.state);
+        // console.log("final state:", this.img.state);
         return this.sharpInstructionsV2;
     };
 
@@ -52,10 +53,10 @@ export class TransformationResolver {
         }, out);
     };
 
-    addInstruction(sharpMethod: string, methodArgs: any) {
+    addInstruction<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {
         const applier = ImageStateMap[sharpMethod];
         if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
-        applier(this.state.state, methodArgs);
+        applier(this.img.state, methodArgs);
 
         const sharpArgsHandler = SharpArgsMap[sharpMethod];
         if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);

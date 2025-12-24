@@ -3,13 +3,14 @@ import type { TransformationResolver } from "../main";
 
 export const resolveExtract = (ctx: TransformationResolver, data: ExtractType): void => {
     const { w, h, x, y } = data;
-    if (w === undefined && h === undefined) throw new Error("extract: at least one dimension requireed");
+    const ar = ctx.img.state.aspectRatio;
+    if (w === undefined && h === undefined) throw new Error("extract: at least one dimension required");
 
-    const width = w ?? Math.round(h * ctx.state.aspectRatio);
-    const height = h ?? Math.round(w / ctx.state.aspectRatio);
+    const width = w ?? Math.round(h * ar);
+    const height = h ?? Math.round(w / ar);
 
-    const imgWidth = ctx.state.currWidth ?? ctx.state.origWidth;
-    const imgHeight = ctx.state.currHeight ?? ctx.state.origHeight;
+    const imgWidth = ctx.img.state.rsWidth ?? ctx.img.state.origWidth;
+    const imgHeight = ctx.img.state.rsHeight ?? ctx.img.state.origHeight;
 
     const left = x ?? Math.round((imgWidth - width) / 2);
     const top = y ?? Math.round((imgHeight - height) / 2);
