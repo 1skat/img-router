@@ -1,0 +1,166 @@
+[
+  {
+    "name": "tr:rs(500,100,y:20)",
+    "input": [
+      {
+        "resize": {
+          "w": 500,
+          "h": 100,
+          "y": 20
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": 0,
+      "topOffsetPost": 20,
+      "widthPost": 500,
+      "heightPost": 100,
+      "width": 500,
+      "height": 372
+    }
+  },
+  {
+    "name": "tr:rs(821,200,y:411)",
+    "input": [
+      {
+        "resize": {
+          "w": 821,
+          "h": 200,
+          "y": 411
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": 0,
+      "topOffsetPost": 411,
+      "widthPost": 821,
+      "heightPost": 200,
+      "width": 821,
+      "height": 611
+    }
+  },
+  {
+    "name": "tr:rs(350,200,y:61)",
+    "input": [
+      {
+        "resize": {
+          "w": 350,
+          "h": 200,
+          "y": 61
+        }
+      }
+    ],
+    "expected": {
+      "error": "y out of boundary. Max y: 60, received: 61"
+    }
+  },
+  {
+    "name": "tr:rs(315,900,x:0)",
+    "input": [
+      {
+        "resize": {
+          "w": 315,
+          "h": 900,
+          "x": 0
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": 0,
+      "topOffsetPost": 0,
+      "widthPost": 315,
+      "heightPost": 900,
+      "width": 1209,
+      "height": 900
+    }
+  },
+  {
+    "name": "tr:rs(315,900,x:894)",
+    "input": [
+      {
+        "resize": {
+          "w": 315,
+          "h": 900,
+          "x": 894
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": 894,
+      "topOffsetPost": 0,
+      "widthPost": 315,
+      "heightPost": 900,
+      "width": 1209,
+      "height": 900
+    }
+  },
+  {
+    "name": "tr:rs(887,_,x:999)",
+    "input": [
+      {
+        "resize": {
+          "w": 887,
+          "x": 999
+        }
+      }
+    ],
+    "expected": {
+      "error": "no space available for padding"
+    }
+  },
+  {
+    "name": "tr:rs(800,595,x:0)",
+    "input": [
+      {
+        "resize": {
+          "w": 800,
+          "h": 595,
+          "x": 0
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": 0,
+      "topOffsetPost": 0,
+      "widthPost": 800,
+      "heightPost": 595,
+      "width": 800,
+      "height": 595
+    }
+  },
+  {
+    "name": "tr:rs(800,595,x:1)",
+    "input": [
+      {
+        "resize": {
+          "w": 800,
+          "h": 595,
+          "x": 1
+        }
+      }
+    ],
+    "expected": {
+      "error": "x out of boundary. Max x: 0, received: 1"
+    }
+  }
+]

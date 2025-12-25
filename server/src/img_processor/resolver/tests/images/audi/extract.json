@@ -1,0 +1,168 @@
+[
+    {
+        "name": "tr:extr(200,550)",
+        "input": [
+            {
+                "extract": {
+                    "w": 200,
+                    "h": 550
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 500,
+            "topOffsetPre": 172,
+            "widthPre": 200,
+            "heightPre": 550,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(500,10)",
+        "input": [
+            {
+                "extract": {
+                    "w": 500,
+                    "h": 10
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 350,
+            "topOffsetPre": 442,
+            "widthPre": 500,
+            "heightPre": 10,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(_,490)",
+        "input": [
+            {
+                "extract": {
+                    "h": 490
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 271,
+            "topOffsetPre": 202,
+            "widthPre": 658,
+            "heightPre": 490,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(310,_)",
+        "input": [
+            {
+                "extract": {
+                    "w": 310
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 445,
+            "topOffsetPre": 331,
+            "widthPre": 310,
+            "heightPre": 231,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(576,404,x:0,y:0)",
+        "input": [
+            {
+                "extract": {
+                    "w": 576,
+                    "h": 404,
+                    "x": 0,
+                    "y": 0
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 0,
+            "topOffsetPre": 0,
+            "widthPre": 576,
+            "heightPre": 404,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(576,404,x:624,y:489)",
+        "input": [
+            {
+                "extract": {
+                    "w": 576,
+                    "h": 404,
+                    "x": 624,
+                    "y": 489
+                }
+            }
+        ],
+        "expected": {
+            "leftOffsetPre": 624,
+            "topOffsetPre": 489,
+            "widthPre": 576,
+            "heightPre": 404,
+            "leftOffsetPost": -1,
+            "topOffsetPost": -1,
+            "widthPost": -1,
+            "heightPost": -1,
+            "width": -1,
+            "height": -1
+        }
+    },
+    {
+        "name": "tr:extr(600,600,x:601)",
+        "input": [
+            {
+                "extract": {
+                    "w": 600,
+                    "h": 600,
+                    "x": 601
+                }
+            }
+        ],
+        "expected": {
+            "error": "x out of boundary"
+        }
+    },
+    {
+        "name": "tr:extr(_,_)",
+        "input": [
+            {
+                "extract": {}
+            }
+        ],
+        "expected": {
+            "error": "extract: at least one dimension required"
+        }
+    }
+]
