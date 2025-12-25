@@ -4,7 +4,7 @@ import { functionHandlers } from "./options_map";
 import { tryCatch } from "@/utils/try-catch";
 import z from "zod";
 
-export const resizeParametersV2 = {
+export const resizeParameters = {
     extr: {
         k: "extract",
         parser: extractParser,
@@ -312,7 +312,6 @@ function parseArgsV3(data: string, fnName: string) {
         parseArgs(k, v, funcHandler.opts);
     };
 
-    console.log("extracted:", extracted);
     return extracted;
 };
 

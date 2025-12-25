@@ -4,15 +4,14 @@ import { ImageState } from "./image_state";
 import { ImageStateMap, SharpArgsMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
 
-export function resolvedSharpInstructions(metadata: sharp.Metadata, accSettings: any, funcChains: any) {
-    // Shared state for all parameter chains
+export function resolvedSharpInstructions(metadata: sharp.Metadata, funcChains: any, accSettings?: any) {
     const [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
     if (imgStateErr) throw imgStateErr;
 
     return funcChains.map(chain => {
         const resolver = new TransformationResolver(imgState, accSettings); // create new per chain
         const [sharpIxs, err] = tryCatch(() => resolver.resolveChain(chain));
-        if (err) throw new Error(`resolveChain: ${err.message}`);
+        if (err) throw err;
 
         return sharpIxs;
     });
@@ -40,8 +39,8 @@ export class TransformationResolver {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
             if (handler) handler(this, content);
         };
+        console.log("final state:", this.img.state);
 
-        // console.log("final state:", this.img.state);
         return this.sharpInstructionsV2;
     };
 
