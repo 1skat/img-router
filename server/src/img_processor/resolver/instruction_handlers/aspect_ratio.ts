@@ -1,21 +1,23 @@
-import type { AspectRatioParams } from "@/img_processor/types";
-import type { TransformationResolver } from "../main";
+import type { AspectRatioType } from "@/img_processor/types";
+import type { TransformationResolver } from "../resolver";
 
-export const resolveAspectRatio = (ctx: TransformationResolver, value: AspectRatioParams): void => {
-    if (ctx.transformsReq.resize) return; // resize will handle it
+export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRatioType): void => {
+    if ("resize" in ctx.reqFunctions) return; // resize will handle it
 
-    const { width, height } = ctx.state;
-    const { wRatio, hRatio } = value;
+    const { w, h, fit } = data;
 
-    if (!wRatio || !hRatio) throw new Error("aspect ratio undefined");
+    // const { width, height } = ctx.state;
+    // const { wRatio, hRatio } = value;
 
-    const currRatio = width / height;
-    const targetRatio = wRatio / hRatio;
+    // if (!wRatio || !hRatio) throw new Error("aspect ratio undefined");
 
-    const outWidth = (currRatio > targetRatio) ? Math.round(height * targetRatio) : width;
-    const outHeight = (currRatio < targetRatio) ? Math.round(width / targetRatio) : height;
+    // const currRatio = width / height;
+    // const targetRatio = wRatio / hRatio;
 
-    ctx.addInstruction("resize", { width: outWidth, height: outHeight });
-    ctx.state.applyResize({ width: outWidth, height: outHeight });
-    return;
+    // const outWidth = (currRatio > targetRatio) ? Math.round(height * targetRatio) : width;
+    // const outHeight = (currRatio < targetRatio) ? Math.round(width / targetRatio) : height;
+
+    // ctx.addInstruction("resize", { width: outWidth, height: outHeight });
+    // ctx.state.applyResize({ width: outWidth, height: outHeight });
+    // return;
 };

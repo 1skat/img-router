@@ -1,5 +1,5 @@
 import { tryCatch } from "@/utils/try-catch";
-import { resizeParameters } from "./resize_map";
+import { resizeParameters } from "./resizing/func_map";
 
 export class ParameterParser {
     parameterMap: Record<string, any>;
@@ -10,7 +10,6 @@ export class ParameterParser {
     };
 
     parseParams(trParams: string) {
-        console.log(trParams);
         const chains = trParams.split("::");
 
         return chains.map((c) => {
@@ -29,7 +28,6 @@ export class ParameterParser {
     };
 
     parseChain(chain: string) {
-        // const parsedChainRes = chain.match(/[a-zA-z]+\([^)]*\)/g)
         const parsedChainRes = chain.match(/^\w+\([^)]*\)(?:,\w+\([^)]*\))*$/)
         if (!parsedChainRes) throw new Error("invalid params");
 
@@ -40,7 +38,7 @@ export class ParameterParser {
             const match = fn.match(/^(\w+)(\([^)]*\))$/)
             if (!match) throw new Error("invalid params");
 
-            return [match[1]/*key method*/, match[2]/*value params*/];
+            return [match[1]/*func method*/, match[2]/*func params*/];
         });
 
         return imgFunctions
@@ -50,6 +48,7 @@ export class ParameterParser {
 
                 const [handlerResult, handlerErr] = tryCatch(() => spec.parser(c?.replace(/^\(|\)$/g, "")));
                 if (handlerErr) throw handlerErr;
+
                 const specKey = spec.k;
 
                 return [specKey, handlerResult]

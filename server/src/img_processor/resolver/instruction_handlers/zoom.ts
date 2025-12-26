@@ -1,21 +1,21 @@
-import type { ZoomParams, ZoomType } from "@/img_processor/types";
-import type { TransformationResolver } from "../main";
+import type { ZoomType } from "@/img_processor/types";
+import type { TransformationResolver } from "../resolver";
 
 export function resolveZoom(ctx: TransformationResolver, data: ZoomType) {
-    if ((ctx.img.state.rsWidth === null && ctx.img.state.rsHeight === null) && (ctx.img.state.postWidth && ctx.img.state.postHeight)) {
-        handlePreResized(ctx, data);
-        return;
-    };
-
-    if (ctx.img.state.postWidth && ctx.img.state.postHeight) {
+    if (ctx.img.state.postWidth && ctx.img.state.postHeight) { // POST
         handlePostResized(ctx, data);
         return;
-    };
-
-    if (ctx.img.state.rsWidth || ctx.img.state.rsHeight) {
+    }
+    else if (ctx.img.state.rsWidth || ctx.img.state.rsHeight) { // RS
         handleResized(ctx, data);
         return;
-    };
+    }
+    else if ((ctx.img.state.rsWidth === null && ctx.img.state.rsHeight === null) && (ctx.img.state.preWidth && ctx.img.state.preHeight)) { // PRE
+        handlePreResized(ctx, data);
+        return;
+    } else {
+        handleOriginal(ctx, data);
+    }
 };
 
 // export function resolveZoom2(ctx: TransformationResolver, data: ZoomType) {
@@ -121,29 +121,14 @@ function handlePreResized(ctx: TransformationResolver, data: ZoomType) {
 
     const { origWidth: origW, origHeight: origH, preWidth: pW, preHeight: pH } = ctx.img.state;
 
-    // Extracted
-    if (pW && pH) {
-        const scaledWidth = Math.round(pW * zoom);
-        const scaledHeight = Math.round(pH * zoom);
-        const left = Math.round((scaledWidth - pW) / 2);
-        const top = Math.round((scaledHeight - pH) / 2);
-        ctx.addInstruction("resize", { width: scaledWidth, height: scaledHeight });
-        ctx.addInstruction("extract", {
-            left: left, top: top, width: pW, height: pH,
-        });
-        return;
-    };
-
-    // Oiginal zoom
-    const scaledWidth = Math.round(origW * zoom);
-    const scaledHeight = Math.round(origH * zoom);
-    const left = Math.round((scaledWidth - origW) / 2);
-    const top = Math.round((scaledHeight - origH) / 2);
+    const scaledWidth = Math.round(pW * zoom);
+    const scaledHeight = Math.round(pH * zoom);
+    const left = Math.round((scaledWidth - pW) / 2);
+    const top = Math.round((scaledHeight - pH) / 2);
     ctx.addInstruction("resize", { width: scaledWidth, height: scaledHeight });
     ctx.addInstruction("extract", {
-        left: left, top: top, width: origW, height: origH,
+        left: left, top: top, width: pW, height: pH,
     });
-    return;
 };
 
 function handlePostResized(ctx: TransformationResolver, data: ZoomType) {
@@ -177,6 +162,23 @@ function handleResized(ctx: TransformationResolver, data: ZoomType) {
     ctx.addInstruction("resize", { width: scaledWidth, height: scaledHeight });
     ctx.addInstruction("extract", {
         left: left, top: top, width: rsW, height: rsH,
+    });
+    return;
+};
+
+function handleOriginal(ctx: TransformationResolver, data: ZoomType) {
+    const { z: zoom, vp, hp } = data;
+    if (!zoom) throw new Error("zoom value undefined");
+
+    const { origWidth: origW, origHeight: origH } = ctx.img.state;
+
+    const scaledWidth = Math.round(origW * zoom);
+    const scaledHeight = Math.round(origH * zoom);
+    const left = Math.round((scaledWidth - origW) / 2);
+    const top = Math.round((scaledHeight - origH) / 2);
+    ctx.addInstruction("resize", { width: scaledWidth, height: scaledHeight });
+    ctx.addInstruction("extract", {
+        left: left, top: top, width: origW, height: origH,
     });
     return;
 };

@@ -20,7 +20,7 @@ export class ImageState {
             rsHeight: null,
             origWidth: metadata.width,
             origHeight: metadata.height,
-            aspectRatio: metadata.width / metadata.height,
+            // aspectRatio: metadata.width / metadata.height,
             // topOffset: null,
             // leftOffset: null,
         };
@@ -81,7 +81,10 @@ export class ImageState {
     get postLeftOffset() {
         return this.state.postLeftOffset;
     };
-    get aspectRatio() {
-        return this.state.aspectRatio;
-    }
+    get getAspectRatio() {
+        const width = (this.preWidth && !this.rsWidth) ? this.preWidth : this.postWidth ?? this.rsWidth ?? this.origWidth;
+        const height = (this.preHeight && !this.rsHeight) ? this.preHeight : this.postHeight ?? this.rsHeight ?? this.origHeight;
+
+        return width / height;
+    };
 };

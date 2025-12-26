@@ -25,6 +25,13 @@ export const functionHandlers = {
             bg: backgroundHandler,
         },
     },
+    aspectRatio: {
+        w: aspectRatioHandler,
+        h: aspectRatioHandler,
+        opts: {
+            fit: aspectRationFitHandler,
+        }
+    },
 };
 
 function axisHandler(vals: string) {
@@ -102,7 +109,7 @@ function backgroundHandler(val: string) {
 };
 
 function zoomImageHandler(vals: string) {
-    if (!vals.trim()) throw new Error("zoom_image_handler: parameter required after `z`");
+    if (!vals.trim()) throw new Error("parameter required after `z`");
     const out = {};
 
     const match = vals.match(/^([1-9]\d*(?:\.\d+)?)$/);
@@ -116,7 +123,6 @@ function zoomImageHandler(vals: string) {
 };
 
 function zoomPaddingHanler(vals: string) {
-    if (!vals.trim()) throw new Error("zoom_padding_handler: parameter required");
     const match = vals.match(/^-?[1-9]\d*$/);
     if (!match) throw new Error(`invalid zoom padding parameters: ${vals}`);
 
@@ -125,3 +131,22 @@ function zoomPaddingHanler(vals: string) {
 
     return pNum;
 };
+
+function aspectRatioHandler(vals: string) {
+    if (!vals.trim()) throw new Error("parameter required after `ar`");
+
+    const match = vals.match(/^([1-9]\d*(?:\.\d+)?)$/);
+    if (!match) throw new Error(`ivalid aspect ratio paramter`);
+
+    const [ar] = match;
+    const arNum = parseFloat(ar);
+
+    return arNum;
+};
+
+function aspectRationFitHandler(vals: string) {
+    if (!vals.trim()) throw new Error("parameter required after `fit`");
+
+    return vals === "in" ? "in" : "out";
+};
+

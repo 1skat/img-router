@@ -4,7 +4,7 @@ import path from "path";
 import type { Sharp, SharpOptions } from "sharp";
 
 import { ImageState } from "../image_state";
-import { resolvedSharpInstructions, TransformationResolver } from "../main";
+import { resolvedSharpInstructions, TransformationResolver } from "../resolver";
 import { tryCatch } from "@/utils/try-catch";
 import { buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
 import sharp from "sharp";
@@ -48,7 +48,7 @@ describe("resize functions", () => {
     for (const [imgName, testObj] of Object.entries(testSuite)) {
         const { buf, meta, testSuite } = testObj;
         for (const { name, input, expected } of testSuite) {
-            test(`${imgName}:${meta.width}x${meta.height} -> ${name}`, async () => {
+            test(`${imgName}:${meta.width}x${meta.height} -> ${name}`, () => {
                 let sharpInst = sharp(buf) as SharpWithOptions;
 
                 if ("error" in expected) {

@@ -7,9 +7,9 @@ import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
-import { ParameterParser } from "@/img_processor/parser/param_parser";
-import { resolvedSharpInstructions } from "@/img_processor/resolver/main";
+import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformerV2, buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
+import { ParameterParser } from "@/img_processor/input_parser/parser";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -76,19 +76,18 @@ export const imageRoutes = new Elysia()
         // 1: prase parameter transformations
         if (!trString) return;
         const [parsedParamChains, paramErr] = tryCatch(() => new ParameterParser().parseParams(trString));
-        // console.log(parsedParamChains);
         if (paramErr) {
             set.status = 400;
             return { error: paramErr.message }
         };
+        console.log(parsedParamChains[0]);
 
         // 2: build transformation instructions for sharp
-        const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, accountSettings, parsedParamChains));
+        const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, parsedParamChains, accSettings));
         if (resolverErr) {
             set.status = 400;
             return { error: resolverErr.message };
         };
-        // console.log("sharp instuctions", sharpInstructionChain);
 
         // 3: build sharp transformers from insructions
         const transformers = buildSharpTransformerV3(sharpInstructionChain);
@@ -102,7 +101,7 @@ export const imageRoutes = new Elysia()
                 width, height, canvas, position,
             } = sharpInstance.options;
             const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            // console.log(sliced);
+            console.log(sliced);
             // console.log(sharpInstance.options);
         };
 

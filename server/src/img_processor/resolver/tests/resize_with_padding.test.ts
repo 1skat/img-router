@@ -4,7 +4,7 @@ import path from "path";
 import type { Sharp, SharpOptions } from "sharp";
 
 import { ImageState } from "../image_state";
-import { resolvedSharpInstructions, TransformationResolver } from "../main";
+import { resolvedSharpInstructions, TransformationResolver } from "../resolver";
 import { tryCatch } from "@/utils/try-catch";
 import { buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
 import sharp from "sharp";

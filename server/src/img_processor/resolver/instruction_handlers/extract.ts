@@ -1,11 +1,12 @@
 import type { ExtractType } from "@/img_processor/types";
-import type { TransformationResolver } from "../main";
+import type { TransformationResolver } from "../resolver";
 
 export const resolveExtract = (ctx: TransformationResolver, data: ExtractType): void => {
     const { w, h, x, y } = data;
-    const ar = ctx.img.state.aspectRatio;
+    const ar = ctx.img.getAspectRatio;
     if (w === undefined && h === undefined) throw new Error("extract: at least one dimension required");
 
+    console.log("extract's AR:", ar);
     const width = w ?? Math.round(h * ar);
     const height = h ?? Math.round(w / ar);
 

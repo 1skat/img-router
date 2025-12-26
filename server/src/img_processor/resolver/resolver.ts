@@ -21,15 +21,13 @@ export class TransformationResolver {
     public img: ImageState;
     public accountSettings: any;
     public reqFunctions: Record<string, any>;
-    // public sharpInstructions: Record<string, any>;
-    public sharpInstructionsV2: { method: string, content: any }[];
+    public sharpInstructions: { method: string, content: any }[];
 
     constructor(imgState: ImageState, accountSettings?: any) {
         this.img = imgState;
         this.accountSettings = accountSettings;
         this.reqFunctions = {};
-        // this.sharpInstructions = {};
-        this.sharpInstructionsV2 = [];
+        this.sharpInstructions = [];
     };
 
     resolveChain(chain: any) {
@@ -41,7 +39,7 @@ export class TransformationResolver {
         };
         console.log("final state:", this.img.state);
 
-        return this.sharpInstructionsV2;
+        return this.sharpInstructions;
     };
 
     getReqFunctions(modifiers: string[]) {
@@ -60,7 +58,11 @@ export class TransformationResolver {
         const sharpArgsHandler = SharpArgsMap[sharpMethod];
         if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);
         const sharpArgs = sharpArgsHandler(methodArgs);
-        this.sharpInstructionsV2.push({ method: sharpMethod, content: sharpArgs });
+        this.sharpInstructions.push({ method: sharpMethod, content: sharpArgs });
+    };
+
+    extractFuncData(fnName: string) {
+        return this.reqFunctions[fnName];
     };
 };
 

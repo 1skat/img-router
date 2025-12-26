@@ -1,5 +1,5 @@
-import { TransformationResolver } from "@/img_processor/resolver/main";
-import type { ResizeType } from "../../types";
+import { TransformationResolver } from "@/img_processor/resolver/resolver";
+import type { AspectRatioType, ResizeType } from "../../types";
 import type { ResizeOptions } from "sharp";
 import type sharp from "sharp";
 import { unescape } from "querystring";
@@ -51,7 +51,7 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
 
     if (x || y) throw new Error("no space available for padding");
 
-    const ar = ctx.img.state.aspectRatio;
+    const ar = ctx.img.getAspectRatio;
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 

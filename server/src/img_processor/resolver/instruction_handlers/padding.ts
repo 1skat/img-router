@@ -1,5 +1,5 @@
 import type { PaddingParams } from "@/img_processor/types";
-import type { TransformationResolver } from "../main";
+import type { TransformationResolver } from "../resolver";
 
 export const resolvePadding = (ctx: TransformationResolver, value: PaddingParams): void => {
     const { top, left, bottom, right } = value;
