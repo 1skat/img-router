@@ -147,6 +147,6 @@ function aspectRatioHandler(vals: string) {
 function aspectRationFitHandler(vals: string) {
     if (!vals.trim()) throw new Error("parameter required after `fit`");
 
-    return vals === "in" ? "in" : "out";
+    return vals === "w" ? "w" : "h";
 };
 

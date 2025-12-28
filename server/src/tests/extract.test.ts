@@ -3,17 +3,16 @@ import fs from "fs";
 import path from "path";
 import type { Sharp, SharpOptions } from "sharp";
 
-import { ImageState } from "../image_state";
-import { resolvedSharpInstructions, TransformationResolver } from "../resolver";
 import { tryCatch } from "@/utils/try-catch";
 import { buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
 import sharp from "sharp";
+import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
 
 interface SharpWithOptions extends Sharp {
     options: any,
 };
 
-const RESIZE_PADDING_TEST_FILE = "resize_padding.json"
+const EXTRACT_TEST_FILE = "extract.json"
 
 async function getTestSuite() {
     const testObj: Record<string, any> = {};
@@ -22,14 +21,11 @@ async function getTestSuite() {
         const dirPath = `./images/${dirName}`;
 
         const imgFile = fs.readdirSync(dirPath).find(f => f.startsWith("original."));
-        if (!imgFile) {
-            console.warn("image not found", dirPath);
-            continue
-        };
+        if (!imgFile) throw new Error("original image file not found");
 
-        const testFile = fs.readdirSync(dirPath).find(f => f === RESIZE_PADDING_TEST_FILE);
+        const testFile = fs.readdirSync(dirPath).find(f => f === EXTRACT_TEST_FILE);
         if (!testFile) {
-            console.warn("transform file not found", dirPath);
+            console.error(`transform file not found: ${dirPath} SKIPPED`);
             continue
         };
 
@@ -44,7 +40,7 @@ async function getTestSuite() {
 
 const testSuite = await getTestSuite();
 
-describe("resize + padding functions", () => {
+describe("extract functions", () => {
     for (const [imgName, testObj] of Object.entries(testSuite)) {
         const { buf, meta, testSuite } = testObj;
         for (const { name, input, expected } of testSuite) {

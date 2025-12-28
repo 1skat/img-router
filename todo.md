@@ -11,9 +11,6 @@
 rs(600,_),ar(4,3,fit:in)
 <!-- 0. add the fit param to ar -->
 <!-- 1. add a function inside the image state that gives the aspect ratio -->
-2. update resolvers to user the function
+<!-- 2. update resolvers to user the function -->
 
-extr - prewith 
-rs with pad - post width
-rs - width
 

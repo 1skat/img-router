@@ -20,30 +20,9 @@ export class ImageState {
             rsHeight: null,
             origWidth: metadata.width,
             origHeight: metadata.height,
-            // aspectRatio: metadata.width / metadata.height,
-            // topOffset: null,
-            // leftOffset: null,
         };
     };
 
-    // applyExtract({ width, height, x, y }: { width: number, height: number, x: number, y: number }) {
-    //     if (width == null || height == null || x == null || y == null) throw new Error('applyExtract requires width, height, x and y');
-
-    //     this.state.preWidth = this.state.preWidth ?? (!this.state.rsWidth ? width : null);
-    //     this.state.postWidth = (this.state.preWidth && this.state.rsWidth) ? width : null;
-    //     this.state.preHeight = this.state.preHeight ?? (!this.state.rsHeight ? height : null);
-    //     this.state.postHeight = (this.state.preHeight && this.state.rsHeight) ? height : null;
-
-    //     this.state.preLeftOffset = this.state.preLeftOffset ?? (!this.state.rsWidth ? x : null);
-    //     this.state.postLeftOffset = (this.state.preLeftOffset && this.state.rsWidth) ? x : null;
-    //     this.state.preTopOffset = this.state.preTopOffset ?? (!this.state.rsWidth ? y : null);
-    //     this.state.postTopOffset = (this.state.preTopOffset && this.state.rsWidth) ? y : null;
-    // };
-
-    // applyResize({ width, height }: { width?: number, height?: number }) {
-    //     if (width) this.state.rsWidth = width;
-    //     if (height) this.state.rsHeight = height;
-    // };
 
     get origWidth() {
         return this.state.origWidth;
@@ -82,9 +61,15 @@ export class ImageState {
         return this.state.postLeftOffset;
     };
     get getAspectRatio() {
-        const width = (this.preWidth && !this.rsWidth) ? this.preWidth : this.postWidth ?? this.rsWidth ?? this.origWidth;
-        const height = (this.preHeight && !this.rsHeight) ? this.preHeight : this.postHeight ?? this.rsHeight ?? this.origHeight;
+        // const width = (this.preWidth && !this.rsWidth) ? this.preWidth : this.postWidth ?? this.rsWidth ?? this.origWidth;
+        // const height = (this.preHeight && !this.rsHeight) ? this.preHeight : this.postHeight ?? this.rsHeight ?? this.origHeight;
 
-        return width / height;
+        return this.getCurrWidth / this.getCurrHeight;
+    };
+    get getCurrWidth() {
+        return (this.preWidth && !this.rsWidth) ? this.preWidth : this.postWidth ?? this.rsWidth ?? this.origWidth;
+    };
+    get getCurrHeight() {
+        return (this.preHeight && !this.rsHeight) ? this.preHeight : this.postHeight ?? this.rsHeight ?? this.origHeight;
     };
 };

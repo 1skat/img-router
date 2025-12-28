@@ -56,7 +56,7 @@ export type ImgStateFields = {
 export const AspectRatioSchema = z.object({
     w: z.number(),
     h: z.number(),
-    fit: z.enum(["out", "in"]).default("out"),
+    fit: z.enum(["w", "h"]).default("w"),
 });
 export type AspectRatioType = z.infer<typeof AspectRatioSchema>;
 
