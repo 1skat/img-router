@@ -37,22 +37,6 @@ export const ExtractSchema = z.object({
 });
 export type ExtractType = z.infer<typeof ExtractSchema>;
 
-export type ImgStateFields = {
-    preLeftOffset: number | null;
-    preTopOffset: number | null;
-    preWidth: number | null;
-    preHeight: number | null;
-    postLeftOffset: number | null;
-    postTopOffset: number | null;
-    postWidth: number | null;
-    postHeight: number | null;
-    rsWidth: number | null;
-    rsHeight: number | null;
-    origWidth: number;
-    origHeight: number;
-    // aspectRatio: number;
-};
-
 export const AspectRatioSchema = z.object({
     w: z.number(),
     h: z.number(),
@@ -60,9 +44,9 @@ export const AspectRatioSchema = z.object({
 });
 export type AspectRatioType = z.infer<typeof AspectRatioSchema>;
 
-export type StateMap = {
-    [key: string]: (state: ImgStateFields, args: any) => void;
-};
+// export type StateMap = {
+//     [key: string]: (state: ImgStateFields, args: any) => void;
+// };
 
 export type ArgsMap = {
     [key: string]: (args: any) => any;

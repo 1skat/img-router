@@ -1,8 +1,7 @@
-import type sharp from "sharp";
 
 type ExtractContent = {
-    left: number | null;
-    top: number | null;
+    left: number | undefined;
+    top: number | undefined;
     width: number;
     height: number;
 };
@@ -13,6 +12,9 @@ type ResizeContent = {
 };
 
 export type AddInstructionType = {
+    preExtract: ExtractContent,
+    postExtract: ExtractContent,
     extract: ExtractContent,
     resize: ResizeContent,
+
 };

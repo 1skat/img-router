@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
-import { ImageState } from "./image_state";
+import { ImageState } from "./state";
 import { ImageStateMap, SharpArgsMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
 
@@ -50,15 +50,16 @@ export class TransformationResolver {
         }, out);
     };
 
-    addInstruction<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {
+    updateState<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {
         const applier = ImageStateMap[sharpMethod];
         if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
+
         applier(this.img.state, methodArgs);
 
-        const sharpArgsHandler = SharpArgsMap[sharpMethod];
-        if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);
-        const sharpArgs = sharpArgsHandler(methodArgs);
-        this.sharpInstructions.push({ method: sharpMethod, content: sharpArgs });
+        // const sharpArgsHandler = SharpArgsMap[sharpMethod];
+        // if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);
+        // const sharpArgs = sharpArgsHandler(methodArgs);
+        // this.sharpInstructions.push({ method: sharpMethod, content: sharpArgs });
     };
 
     extractFuncData(fnName: string) {

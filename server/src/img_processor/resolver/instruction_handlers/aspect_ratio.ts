@@ -13,17 +13,14 @@ export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRati
     const newWidth = (fit === "w") ? currWidth : Math.round(currHeight * targetAr); // if w return currWidth : h*tar
     const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr); // if h return currHeight : w/tar
 
-    if (ctx.img.postWidth && ctx.img.postHeight) {
-        ctx.addInstruction("extract", { width: newWidth, height: newHeight, left: ctx.img.postLeftOffset, top: ctx.img.postTopOffset });
+    if (ctx.img.isPostExtracted) {
+        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.preLeftOffset, top: ctx.img.preTopOffset });
     }
-    else if (ctx.img.rsWidth && ctx.img.rsHeight) {
-        ctx.addInstruction("resize", { width: newWidth, height: newHeight });
+    else if (!ctx.img.isRsized && ctx.img.isPreExtracted) {
+        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.img.preLeftOffset, top: ctx.img.preTopOffset });
     }
-    else if ((ctx.img.state.rsWidth === null && ctx.img.state.rsHeight === null) && (ctx.img.state.preWidth && ctx.img.state.preHeight)) {
-        console.log("here");
-        ctx.addInstruction("extract", { width: newWidth, height: newHeight, left: ctx.img.preLeftOffset, top: ctx.img.preTopOffset });
-    } else {
-        ctx.addInstruction("resize", { width: newWidth, height: newHeight });
+    else {
+        ctx.updateState("resize", { width: newWidth, height: newHeight });
     };
 
     // 800x450 - ar(2,3) - ar > tar

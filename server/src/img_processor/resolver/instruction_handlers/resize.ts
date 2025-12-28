@@ -16,7 +16,7 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     out.background = bg;
 
     if (x === undefined && y === undefined) {
-        ctx.addInstruction("resize", out);
+        ctx.updateState("resize", out);
         return;
     };
 
@@ -29,10 +29,10 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     if (x && (width + x) > resizedW) throw new Error(`x out of boundary. Max x: ${resizedW - width}, received: ${x}`);
     if (y && (height + y) > resizedH) throw new Error(`y out of boundary. Max y: ${resizedH - height}, received: ${y}`);
 
-    ctx.addInstruction("resize", { width: resizedW, height: resizedH });
-    ctx.addInstruction("extract", {
-        left: x ?? null,
-        top: y ?? null,
+    ctx.updateState("resize", { width: resizedW, height: resizedH });
+    ctx.updateState("extract", {
+        left: x,
+        top: y,
         width: width,
         height: height,
     });
@@ -55,19 +55,8 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 
-    ctx.addInstruction("resize", out);
+    ctx.updateState("resize", out);
     return;
-    // if (aspectRatio) {
-    //     const { wRatio, hRatio } = aspectRatio;
-    //     out.width = width ?? Math.round((height! * wRatio) / hRatio);
-    //     out.height = height ?? Math.round((width! * hRatio) / wRatio);
-    //     ctx.addInstruction("resize", out);
-    //     ctx.state.applyResize({ width: out.width, height: out.height });
-    //     return;
-    // };
-
-
-    // console.log(out);
 };
 
 
