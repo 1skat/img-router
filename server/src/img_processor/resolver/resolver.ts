@@ -33,6 +33,7 @@ export class TransformationResolver {
             if (handler) handler(this, content);
         };
 
+        console.log("final state", this.img.state);
         return compile(this.img);
     };
 

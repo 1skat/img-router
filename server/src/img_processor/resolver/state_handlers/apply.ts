@@ -16,10 +16,11 @@ export function applyPostExtract(
     state: ImgStateFields,
     { left, top, width, height }: { left: number; top: number, width: number; height: number; }
 ) {
+    console.log(left, top, width, height);
     state.postLeftOffset = left ?? -1;
     state.postTopOffset = top ?? -1;
     state.postWidth = width ?? -1;
-    state.preHeight = height ?? -1;
+    state.postHeight = height ?? -1;
 };
 
 export function applyExtract(

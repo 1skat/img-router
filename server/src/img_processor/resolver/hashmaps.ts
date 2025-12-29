@@ -19,6 +19,6 @@ export const ImageStateMap: StateMap = { // add type
     resize: applyResize,
     extract: applyExtract,
     preExtract: applyPreExtract,
-    postExtact: applyPostExtract,
+    postExtract: applyPostExtract,
 };
 
