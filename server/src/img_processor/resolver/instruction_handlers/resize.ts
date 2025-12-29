@@ -44,7 +44,6 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
 
     const { width, height } = dimensions;
     const { fit, x, y, bg } = opts;
-    const { aspectRatio } = ctx.getReqFunctions(["aspectRatio"]);
 
     out.background = bg; out.fit = fit?.mode
     out.position = fit?.position;
@@ -58,7 +57,6 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
     ctx.updateState("resize", out);
     return;
 };
-
 
 export const resolveResize = (ctx: TransformationResolver, data: ResizeType): void => {
     const { w: width, h: height, x, y } = data;

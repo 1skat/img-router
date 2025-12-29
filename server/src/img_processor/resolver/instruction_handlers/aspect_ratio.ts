@@ -4,7 +4,7 @@ import type { TransformationResolver } from "../resolver";
 export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRatioType): void => {
     const { w, h, fit } = data; // 800x300
 
-    const targetAr = w / h; // 2:3
+    const targetAr = w / h;
     const currAr = ctx.img.getAspectRatio;
 
     const currWidth = ctx.img.getCurrWidth;
@@ -14,10 +14,10 @@ export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRati
     const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr); // if h return currHeight : w/tar
 
     if (ctx.img.isPostExtracted) {
-        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.preLeftOffset, top: ctx.img.preTopOffset });
+        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.state.preLeftOffset, top: ctx.img.state.preTopOffset });
     }
     else if (!ctx.img.isRsized && ctx.img.isPreExtracted) {
-        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.img.preLeftOffset, top: ctx.img.preTopOffset });
+        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.img.state.preLeftOffset, top: ctx.img.state.preTopOffset });
     }
     else {
         ctx.updateState("resize", { width: newWidth, height: newHeight });

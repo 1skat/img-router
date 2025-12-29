@@ -1,14 +1,28 @@
+import type { FitEnum } from "sharp";
+
 export type ImgStateFields = {
-    preLeftOffset: number | null;
-    preTopOffset: number | null;
-    preWidth: number | null;
-    preHeight: number | null;
-    postLeftOffset: number | null;
-    postTopOffset: number | null;
-    postWidth: number | null;
-    postHeight: number | null;
-    rsWidth: number | null;
-    rsHeight: number | null;
+    preLeftOffset: number;
+    preTopOffset: number;
+    preWidth: number;
+    preHeight: number;
+    postLeftOffset: number;
+    postTopOffset: number;
+    postWidth: number;
+    postHeight: number;
+    rsWidth: number;
+    rsHeight: number;
+    rsFit: keyof FitEnum | undefined,
+    rsPosition: "top" | "right top" | "right" | "right bottom" | "bottom" | "left bottom" | "left" | "left top" | undefined;
+    rsBackground: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
     origWidth: number;
     origHeight: number;
+};
+
+export type StateMap = {
+    [key: string]: (state: ImgStateFields, args: any) => void;
 };

@@ -16,5 +16,4 @@ export type AddInstructionType = {
     postExtract: ExtractContent,
     extract: ExtractContent,
     resize: ResizeContent,
-
 };

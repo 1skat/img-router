@@ -1,8 +1,9 @@
 import sharp from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./state";
-import { ImageStateMap, SharpArgsMap, SharpInsructionMap } from "./hashmaps";
+import { ImageStateMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
+import { compile } from "./compiler";
 
 export function resolvedSharpInstructions(metadata: sharp.Metadata, funcChains: any, accSettings?: any) {
     const [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
@@ -20,34 +21,19 @@ export function resolvedSharpInstructions(metadata: sharp.Metadata, funcChains: 
 export class TransformationResolver {
     public img: ImageState;
     public accountSettings: any;
-    public reqFunctions: Record<string, any>;
-    public sharpInstructions: { method: string, content: any }[];
 
     constructor(imgState: ImageState, accountSettings?: any) {
         this.img = imgState;
         this.accountSettings = accountSettings;
-        this.reqFunctions = {};
-        this.sharpInstructions = [];
     };
 
-    resolveChain(chain: any) {
-        this.reqFunctions = chain; // load requested transformations to context map
-
-        for (const [method, content] of Object.entries(this.reqFunctions)) {
+    resolveChain(chain: typeof SharpInsructionMap) {
+        for (const [method, content] of Object.entries(chain)) {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
             if (handler) handler(this, content);
         };
-        console.log("final state:", this.img.state);
 
-        return this.sharpInstructions;
-    };
-
-    getReqFunctions(modifiers: string[]) {
-        const out: Record<string, any> = {};
-        return modifiers.reduce((acc, mod) => {
-            acc[mod] = this.reqFunctions[mod];
-            return acc;
-        }, out);
+        return compile(this.img);
     };
 
     updateState<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {
@@ -55,15 +41,6 @@ export class TransformationResolver {
         if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
 
         applier(this.img.state, methodArgs);
-
-        // const sharpArgsHandler = SharpArgsMap[sharpMethod];
-        // if (!sharpArgsHandler) throw new Error(`failed to get sharp arg handler for ${sharpMethod}`);
-        // const sharpArgs = sharpArgsHandler(methodArgs);
-        // this.sharpInstructions.push({ method: sharpMethod, content: sharpArgs });
-    };
-
-    extractFuncData(fnName: string) {
-        return this.reqFunctions[fnName];
     };
 };
 

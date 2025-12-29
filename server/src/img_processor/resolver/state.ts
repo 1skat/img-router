@@ -3,7 +3,7 @@ import type { ImgStateFields } from "./types";
 import { get, is } from "./helpers";
 
 export class ImageState {
-    state: ImgStateFields;
+    public state: ImgStateFields;
 
     constructor(metadata: sharp.Metadata) {
         if (!metadata.width || !metadata.height || !metadata.format) throw new Error("image metdata missing");
@@ -18,63 +18,40 @@ export class ImageState {
             postHeight: -1,
             rsWidth: -1,
             rsHeight: -1,
+            rsFit: undefined,
+            rsPosition: undefined,
+            rsBackground: undefined,
             origWidth: metadata.width,
             origHeight: metadata.height,
         };
     };
 
     get isRsized() {
-        return this.state.rsWidth !== -1 || this.state.rsHeight !== -1;
+        return is.set(this.state.rsWidth) || is.set(this.state.rsHeight);
     };
     get isPreExtracted() {
-        return this.state.preWidth !== -1 && this.state.preHeight !== -1 && this.state.preLeftOffset !== -1 && this.state.preTopOffset !== -1;
+        return is.set(this.state.preWidth) && is.set(this.state.preHeight);
     };
     get isPostExtracted() {
-        return this.state.postWidth !== -1 && this.state.postHeight !== -1 && this.state.postLeftOffset !== -1 && this.state.postTopOffset !== -1;
+        return is.set(this.state.postWidth) && is.set(this.state.postHeight);
     };
-    get origWidth() {
-        return this.state.origWidth;
-    };
-    get origHeight() {
-        return this.state.origHeight;
-    };
-    get rsWidth() {
-        return this.state.rsWidth;
-    };
-    get rsHeight() {
-        return this.state.rsHeight;
-    };
-    get preWidth() {
-        return this.state.preWidth;
-    };
-    get preHeight() {
-        return this.state.preHeight;
-    };
-    get postWidth() {
-        return this.state.postWidth;
-    };
-    get postHeight() {
-        return this.state.postHeight;
-    };
-    get preTopOffset() {
-        return this.state.preTopOffset;
-    };
-    get postTopOffset() {
-        return this.state.postTopOffset;
-    };
-    get preLeftOffset() {
-        return this.state.preLeftOffset;
-    };
-    get postLeftOffset() {
-        return this.state.postLeftOffset;
-    };
+
     get getAspectRatio() {
         return this.getCurrWidth / this.getCurrHeight;
     };
     get getCurrWidth() {
-        return (is.set(this.preWidth) && is.notSet(this.rsWidth)) ? this.preWidth : get.ifSet(this.postWidth) ?? get.ifSet(this.rsWidth) ?? get.ifSet(this.origWidth);
+        return (is.set(this.state.preWidth) && is.notSet(this.state.rsWidth))
+            ? this.state.preWidth
+            : get.ifSet(this.state.postWidth)
+            ?? get.ifSet(this.state.rsWidth)
+            ?? get.ifSet(this.state.origWidth);
     };
+
     get getCurrHeight() {
-        return (is.set(this.preHeight) && is.notSet(this.rsHeight)) ? this.preHeight : get.ifSet(this.postHeight) ?? get.ifSet(this.rsHeight) ?? get.ifSet(this.origHeight);
+        return (is.set(this.state.preHeight) && is.notSet(this.state.rsHeight))
+            ? this.state.preHeight
+            : get.ifSet(this.state.postHeight)
+            ?? get.ifSet(this.state.rsHeight)
+            ?? get.ifSet(this.state.origHeight);
     };
 };

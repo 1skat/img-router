@@ -1,13 +1,8 @@
-const set = (v: any) => v !== -1;
-const notSet = (v: any) => v === -1;
-
-const ifSet = (v: any) => v !== -1 ? v : undefined;
-
 export const is = {
-    set,
-    notSet,
+    set: (v: any) => v !== -1,
+    notSet: (v: any) => v === -1,
 };
 
 export const get = {
-    ifSet,
+    ifSet: (v: any) => v !== -1 ? v : undefined,
 };

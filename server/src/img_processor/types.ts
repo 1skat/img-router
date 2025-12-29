@@ -40,14 +40,6 @@ export type ExtractType = z.infer<typeof ExtractSchema>;
 export const AspectRatioSchema = z.object({
     w: z.number(),
     h: z.number(),
-    fit: z.enum(["w", "h"]).default("w"),
+    fit: z.enum(["w", "h"]).default("w")
 });
 export type AspectRatioType = z.infer<typeof AspectRatioSchema>;
-
-// export type StateMap = {
-//     [key: string]: (state: ImgStateFields, args: any) => void;
-// };
-
-export type ArgsMap = {
-    [key: string]: (args: any) => any;
-};

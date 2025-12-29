@@ -34,17 +34,17 @@ export const imageRoutes = new Elysia()
         if (!assetPath) throw new Error("Path required");
         if (!bucketName) throw new Error("Bucket name required");
 
-        // const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
-        // if (s3Err) {
-        //     set.status = 404;
-        //     return { error: s3Err.message }
-        // };
+        const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
+        if (s3Err) {
+            set.status = 404;
+            return { error: s3Err.message }
+        };
 
-        // const imgStream = s3Response.Body;
-        // if (!imgStream) {
-        //     set.status = 404;
-        //     return { error: "S3: failed to get image" };
-        // };
+        const imgStream = s3Response.Body;
+        if (!imgStream) {
+            set.status = 404;
+            return { error: "S3: failed to get image" };
+        };
 
         // Client hints:
         const userDeviceSupportedFormats = headers["accept"] ?? "";
@@ -64,11 +64,7 @@ export const imageRoutes = new Elysia()
             },
         };
 
-        // Production:
-        // const buf = await imgStream.transformToByteArray();
-        // Dev:
-        const imgPath = path.join(import.meta.dir, "audi_main.png");
-        const buf = fs.readFileSync(imgPath);
+        const buf = await imgStream.transformToByteArray();
 
         let sharpInstance = sharp(buf);
         const imgMetadata = await sharpInstance.metadata();
@@ -90,7 +86,6 @@ export const imageRoutes = new Elysia()
 
         // 3: build sharp transformers from insructions
         const transformers = buildSharpTransformerV3(sharpInstructionChain);
-
 
         for (const [i, applyTransform] of transformers.entries()) {
             sharpInstance = applyTransform(sharpInstance);

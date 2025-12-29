@@ -1,5 +1,6 @@
 import type { ImgStateFields } from "@/img_processor/resolver/types"
 import { is, get } from "@/img_processor/resolver/helpers";
+import type sharp from "sharp";
 
 export function applyPreExtract(
     state: ImgStateFields,
@@ -47,8 +48,8 @@ export function applyExtract(
 
 export function applyResize(
     state: ImgStateFields,
-    { width, height }: { width?: number, height?: number }) {
-
-    if (width) state.rsWidth = width;
-    if (height) state.rsHeight = height;
+    opts: sharp.ResizeOptions,
+) {
+    state.rsWidth = opts.width ?? -1;
+    state.rsHeight = opts.height ?? -1;
 };
