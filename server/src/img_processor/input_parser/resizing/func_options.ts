@@ -32,6 +32,13 @@ export const functionHandlers = {
             fit: aspectRationFitHandler,
         }
     },
+    padding: {
+        px: paddingHandler,
+        opts: {
+            side: paddingSideHandler,
+            bg: backgroundHandler,
+        }
+    },
 };
 
 function axisHandler(vals: string) {
@@ -136,7 +143,7 @@ function aspectRatioHandler(vals: string) {
     if (!vals.trim()) throw new Error("parameter required after `ar`");
 
     const match = vals.match(/^([1-9]\d*(?:\.\d+)?)$/);
-    if (!match) throw new Error(`ivalid aspect ratio paramter`);
+    if (!match) throw new Error(`invalid aspect ratio paramter`);
 
     const [ar] = match;
     const arNum = parseFloat(ar);
@@ -148,5 +155,24 @@ function aspectRationFitHandler(vals: string) {
     if (!vals.trim()) throw new Error("parameter required after `fit`");
 
     return vals === "w" ? "w" : "h";
+};
+
+function paddingHandler(vals: string) {
+    if (!vals.trim()) throw new Error("parameter required after `pad`");
+
+    const match = vals.match(/^[1-9]\d*$/);
+    if (!match) throw new Error("invalid padding parameter");
+
+    const [px] = match;
+
+    return parseInt(px);
+};
+
+function paddingSideHandler(vals: string) {
+    const match = vals.match(/[ltbr]/g);
+    if (!match || new Set(match).size !== match.length) throw new Error("invalid padding side parameters");
+
+    console.log(match);
+    return { left: match.includes("l"), top: match.includes("t"), bottom: match.includes("b"), right: match.includes("r") };
 };
 

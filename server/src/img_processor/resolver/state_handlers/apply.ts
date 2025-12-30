@@ -1,6 +1,7 @@
 import type { ImgStateFields } from "@/img_processor/resolver/types"
 import { is, get } from "@/img_processor/resolver/helpers";
 import type sharp from "sharp";
+import type { ExtendContent, ExtractContent, ResizeContent } from "./types";
 
 export function applyPreExtract(
     state: ImgStateFields,
@@ -49,8 +50,23 @@ export function applyExtract(
 
 export function applyResize(
     state: ImgStateFields,
-    opts: sharp.ResizeOptions,
+    opts: ResizeContent,
 ) {
     state.rsWidth = opts.width ?? -1;
     state.rsHeight = opts.height ?? -1;
+    state.rsFit = opts.fit;
+    state.rsPosition = opts.position;
+    state.rsBackground = opts.background;
+};
+
+export function applyExtend(
+    state: ImgStateFields,
+    opts: ExtendContent,
+) {
+    state.extendTop = opts.top;
+    state.extendBottom = opts.bottom;
+    state.extendLeft = opts.left;
+    state.extendRight = opts.right;
+    state.extendBackground = opts.background;
+    console.log("apply extend, bg:", opts.background);
 };

@@ -1,14 +1,36 @@
+import type { FitEnum } from "sharp";
 
-type ExtractContent = {
+export type ExtractContent = {
     left: number | undefined;
     top: number | undefined;
     width: number;
     height: number;
 };
 
-type ResizeContent = {
+export type ResizeContent = {
     width?: number;
     height?: number;
+    background?: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
+    fit: keyof FitEnum | undefined,
+    position: "top" | "right top" | "right" | "right bottom" | "bottom" | "left bottom" | "left" | "left top" | undefined
+};
+
+export type ExtendContent = {
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+    background?: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
 };
 
 export type AddInstructionType = {
@@ -16,4 +38,5 @@ export type AddInstructionType = {
     postExtract: ExtractContent,
     extract: ExtractContent,
     resize: ResizeContent,
+    extend: ExtendContent,
 };

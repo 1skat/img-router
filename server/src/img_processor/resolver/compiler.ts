@@ -37,6 +37,18 @@ export function compile(img: ImageState) {
         };
         sharpInstructions.push({ method, content });
     };
+    if (img.isExtended) {
+        const method = "extend";
+        const content: sharp.ExtendOptions = {
+            top: img.state.extendTop,
+            bottom: img.state.extendBottom,
+            left: img.state.extendLeft,
+            right: img.state.extendRight,
+            background: img.state.extendBackground,
+        };
+
+        sharpInstructions.push({ method, content });
+    };
 
     return sharpInstructions;
 };

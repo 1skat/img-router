@@ -34,17 +34,17 @@ export const imageRoutes = new Elysia()
         if (!assetPath) throw new Error("Path required");
         if (!bucketName) throw new Error("Bucket name required");
 
-        const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
-        if (s3Err) {
-            set.status = 404;
-            return { error: s3Err.message }
-        };
+        // const [s3Response, s3Err] = await tryCatchAsync(s3.send(new GetObjectCommand({ Bucket: bucketName, Key: assetPath })));
+        // if (s3Err) {
+        //     set.status = 404;
+        //     return { error: s3Err.message }
+        // };
 
-        const imgStream = s3Response.Body;
-        if (!imgStream) {
-            set.status = 404;
-            return { error: "S3: failed to get image" };
-        };
+        // const imgStream = s3Response.Body;
+        // if (!imgStream) {
+        //     set.status = 404;
+        //     return { error: "S3: failed to get image" };
+        // };
 
         // Client hints:
         const userDeviceSupportedFormats = headers["accept"] ?? "";
@@ -64,7 +64,8 @@ export const imageRoutes = new Elysia()
             },
         };
 
-        const buf = await imgStream.transformToByteArray();
+        const buf = fs.readFileSync(path.join(__dirname, "./audi_main.png"));
+        // const buf = await imgStream.transformToByteArray();
 
         let sharpInstance = sharp(buf);
         const imgMetadata = await sharpInstance.metadata();
@@ -95,8 +96,8 @@ export const imageRoutes = new Elysia()
                 width, height, canvas, position,
             } = sharpInstance.options;
             const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            console.log(sliced);
-            // console.log(sharpInstance.options);
+            // console.log(sliced);
+            console.log(sharpInstance.options);
         };
 
         set.headers = {

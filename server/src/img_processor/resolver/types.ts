@@ -21,6 +21,16 @@ export type ImgStateFields = {
     } | undefined;
     origWidth: number;
     origHeight: number;
+    extendTop: number | undefined;
+    extendBottom: number | undefined;
+    extendLeft: number | undefined;
+    extendRight: number | undefined;
+    extendBackground: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
 };
 
 export type StateMap = {

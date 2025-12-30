@@ -1,10 +1,26 @@
-import type { PaddingParams } from "@/img_processor/types";
+import type { PaddingType } from "@/img_processor/types";
 import type { TransformationResolver } from "../resolver";
+import type { ExtendOptions } from "sharp";
+import type { ExtendContent } from "../state_handlers/types";
 
-export const resolvePadding = (ctx: TransformationResolver, value: PaddingParams): void => {
-    const { top, left, bottom, right } = value;
-    const { background } = ctx.getMods(["background"]);
+export function resolvePadding(ctx: TransformationResolver, data: PaddingType) {
+    const out: ExtendContent = {};
+    const { px, side, bg } = data;
 
-    ctx.addInstructionV2("extend", { top: top ?? 0, left: left ?? 0, bottom: bottom ?? 0, right: right ?? 0, ...(background && { background }) });
-    return;
+    out.background = bg;
+
+    if (!side) {
+        out.top = px;
+        out.bottom = px;
+        out.left = px;
+        out.right = px;
+    }
+    else {
+        out.top = side.top ? px : undefined;
+        out.bottom = side.bottom ? px : undefined;
+        out.left = side.left ? px : undefined;
+        out.right = side.right ? px : undefined;
+    };
+
+    ctx.updateState("extend", out);
 };

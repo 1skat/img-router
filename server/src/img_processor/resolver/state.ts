@@ -23,6 +23,10 @@ export class ImageState {
             rsBackground: undefined,
             origWidth: metadata.width,
             origHeight: metadata.height,
+            extendTop: undefined,
+            extendBottom: undefined,
+            extendLeft: undefined,
+            extendRight: undefined,
         };
     };
 
@@ -53,5 +57,9 @@ export class ImageState {
             : get.ifSet(this.state.postHeight)
             ?? get.ifSet(this.state.rsHeight)
             ?? get.ifSet(this.state.origHeight);
+    };
+
+    get isExtended() {
+        return (this.state.extendTop || this.state.extendBottom || this.state.extendLeft || this.state.extendRight);
     };
 };

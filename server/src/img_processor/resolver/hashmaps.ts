@@ -4,7 +4,7 @@ import { resolveExtract } from "./instruction_handlers/extract";
 import { resolvePadding } from "./instruction_handlers/padding";
 import { resolveResize } from "./instruction_handlers/resize";
 import { resolveZoom } from "./instruction_handlers/zoom";
-import { applyExtract, applyPostExtract, applyPreExtract, applyResize } from "./state_handlers/apply";
+import { applyExtend, applyExtract, applyPostExtract, applyPreExtract, applyResize } from "./state_handlers/apply";
 import type { StateMap } from "./types";
 
 export const SharpInsructionMap = {
@@ -15,10 +15,11 @@ export const SharpInsructionMap = {
     extract: resolveExtract,
 };
 
-export const ImageStateMap: StateMap = { // add type 
+export const ImageStateMap: StateMap = {
     resize: applyResize,
     extract: applyExtract,
     preExtract: applyPreExtract,
     postExtract: applyPostExtract,
+    extend: applyExtend,
 };
 

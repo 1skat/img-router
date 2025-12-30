@@ -3,7 +3,7 @@ import { functionHandlers } from "./func_options";
 import { tryCatch } from "@/utils/try-catch";
 import z from "zod";
 import { parseImgFuncArgs } from "../utils/parse_func_args";
-import { AspectRatioSchema, ExtractSchema, ResizeSchema, ZoomSchema } from "@/img_processor/types";
+import { AspectRatioSchema, ExtractSchema, PaddingSchema, ResizeSchema, ZoomSchema } from "@/img_processor/types";
 
 export const resizeParameters = {
     extr: {
@@ -21,6 +21,10 @@ export const resizeParameters = {
     ar: {
         k: "aspectRatio",
         parser: aspectRatioParser,
+    },
+    pad: {
+        k: "padding",
+        parser: paddingParser,
     }
 };
 
@@ -116,44 +120,8 @@ export const resizeParameters = {
 // };
 
 
-// function fitImageHandler(vals: string): FitParams {
-//     if (!vals.trim()) throw new Error("fit_image_handler: parameter required after `fit`");
-
-//     const match = vals.match(/^(p|in|out|fill)(.*)$/); // e.g 'prt' (padding right top) 
-//     if (!match) throw new Error(`Invalid fit transformation: ${vals}`);
-
-//     const [_, mode, position] = match;
-//     switch (mode) {
-//         case "p": {
-//             const positionMap = {
-//                 t: "top",
-//                 rt: "right top",
-//                 r: "right",
-//                 rb: "right bottom",
-//                 b: "bottom",
-//                 lb: "left bottom",
-//                 l: "left",
-//                 lt: "left top",
-//             };
-//             const pos = positionMap[position?.trim()];
-
-//             return { fit: "contain", ...(pos && { position: pos }) };
-//         };
-//         case "fill": {
-//             return { fit: "fill" };
-//         }
-//         case "in": {
-//             return { fit: "inside" };
-//         }
-//         case "out": {
-//             return { fit: "outside" };
-//         }
-//         default: throw new Error(`Unknown fit mode: ${mode}`);
-//     };
-// };
-
 function extractParser(data: string) {
-    if (!data.trim()) throw new Error("extract_image_handler: parameter required after `extr`");
+    if (!data.trim()) throw new Error("parameter required after `extr`");
     const extracted = parseImgFuncArgs(data, "extract");
 
     return ExtractSchema.parse(extracted);
@@ -178,4 +146,13 @@ function aspectRatioParser(data: string) {
     const extracted = parseImgFuncArgs(data, "aspectRatio");
 
     return AspectRatioSchema.parse(extracted);
+};
+
+function paddingParser(data: string) {
+    if (!data.trim()) throw new Error("parameter required after `pad`");
+    const extracted = parseImgFuncArgs(data, "padding");
+
+    console.log("extracted padding", extracted);
+    return PaddingSchema.parse(extracted);
+
 };
