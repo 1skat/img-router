@@ -8,7 +8,7 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
 import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
-import { buildSharpTransformerV2, buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
+import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/parser";
 
 const s3 = new S3Client({
@@ -86,18 +86,18 @@ export const imageRoutes = new Elysia()
         };
 
         // 3: build sharp transformers from insructions
-        const transformers = buildSharpTransformerV3(sharpInstructionChain);
+        const transformers = buildSharpTransformer(sharpInstructionChain);
 
         for (const [i, applyTransform] of transformers.entries()) {
             sharpInstance = applyTransform(sharpInstance);
             const {
                 leftOffsetPre, topOffsetPre, topOffset, widthPre, heightPre,
                 leftOffsetPost, topOffsetPost, widthPost, heightPost,
-                width, height, canvas, position,
+                width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore
             } = sharpInstance.options;
-            const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position };
-            // console.log(sliced);
-            console.log(sharpInstance.options);
+            const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore };
+            console.log(sliced);
+            // console.log(sharpInstance.options);
         };
 
         set.headers = {

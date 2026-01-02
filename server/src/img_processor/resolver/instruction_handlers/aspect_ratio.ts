@@ -10,12 +10,10 @@ export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRati
     const currWidth = ctx.img.getCurrWidth;
     const currHeight = ctx.img.getCurrHeight;
 
-    const newWidth = (fit === "w") ? currWidth : Math.round(currHeight * targetAr); // if w return currWidth : h*tar
-    const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr); // if h return currHeight : w/tar
-    console.log(newWidth, newHeight);
+    const newWidth = (fit === "w") ? currWidth : Math.round(currHeight * targetAr);
+    const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr);
 
     if (ctx.img.isPostExtracted) {
-        console.log("here");
         ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.state.postLeftOffset, top: ctx.img.state.postTopOffset });
     }
     else if (!ctx.img.isRsized && ctx.img.isPreExtracted) {

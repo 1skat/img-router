@@ -1,4 +1,5 @@
 import type { FitEnum } from "sharp";
+import type { ImageState } from "./state";
 
 export type ImgStateFields = {
     preLeftOffset: number;
@@ -31,8 +32,17 @@ export type ImgStateFields = {
         b: number;
         alpha: number;
     } | undefined;
+    rotateAngle: number;
+    rotateBefore: boolean;
+    rotateBackground: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
 };
 
 export type StateMap = {
-    [key: string]: (state: ImgStateFields, args: any) => void;
+    [key: string]: (state: ImageState, args: any) => void;
 };
+

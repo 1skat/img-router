@@ -41,7 +41,7 @@ export class TransformationResolver {
         const applier = ImageStateMap[sharpMethod];
         if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
 
-        applier(this.img.state, methodArgs);
+        applier(this.img, methodArgs);
     };
 };
 

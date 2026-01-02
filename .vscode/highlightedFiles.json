@@ -1,0 +1,86 @@
+{
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser": {
+    "color": "blue"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/encoding": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/encoding/encode_map.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/parser.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/resizing": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/resizing/func_map.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/resizing/func_options.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/utils": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser/utils/parse_func_args.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/input_parser"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/ix_builder": {
+    "color": "gold"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/ix_builder/build_transform.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/ix_builder"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver": {
+    "color": "green"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/compiler.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/hashmaps.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/helpers.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/aspect_ratio.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/extract.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/padding.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/resize.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/rotate.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/instruction_handlers/zoom.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/resolver.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/state.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/state_handlers": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/state_handlers/apply.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/state_handlers/types.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  },
+  "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver/types.ts": {
+    "parent": "/Users/sk4t/workspace/github.com/scatkit/img-streamv2/server/src/img_processor/resolver"
+  }
+}

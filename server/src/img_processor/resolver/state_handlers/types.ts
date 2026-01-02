@@ -33,10 +33,22 @@ export type ExtendContent = {
     } | undefined;
 };
 
+export type RotateContent = {
+    degrees: number,
+    background?: {
+        r: number;
+        g: number;
+        b: number;
+        alpha: number;
+    } | undefined;
+};
+
 export type AddInstructionType = {
     preExtract: ExtractContent,
     postExtract: ExtractContent,
     extract: ExtractContent,
     resize: ResizeContent,
     extend: ExtendContent,
+    rotate: RotateContent,
 };
+

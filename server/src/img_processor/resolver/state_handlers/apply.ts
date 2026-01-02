@@ -1,31 +1,31 @@
 import type { ImgStateFields } from "@/img_processor/resolver/types"
 import { is, get } from "@/img_processor/resolver/helpers";
 import type sharp from "sharp";
-import type { ExtendContent, ExtractContent, ResizeContent } from "./types";
+import type { ExtendContent, ExtractContent, ResizeContent, RotateContent } from "./types";
+import type { ImageState } from "../state";
 
 export function applyPreExtract(
-    state: ImgStateFields,
+    img: ImageState,
     { left, top, width, height }: { left: number; top: number, width: number; height: number; }
 ) {
-    state.preLeftOffset = left ?? -1;
-    state.preTopOffset = top ?? -1;
-    state.preWidth = width ?? -1;
-    state.preHeight = height ?? -1;
+    img.state.preLeftOffset = left ?? -1;
+    img.state.preTopOffset = top ?? -1;
+    img.state.preWidth = width ?? -1;
+    img.state.preHeight = height ?? -1;
 };
 
 export function applyPostExtract(
-    state: ImgStateFields,
+    img: ImageState,
     { left, top, width, height }: { left: number; top: number, width: number; height: number; }
 ) {
-    console.log(left, top, width, height);
-    state.postLeftOffset = left ?? -1;
-    state.postTopOffset = top ?? -1;
-    state.postWidth = width ?? -1;
-    state.postHeight = height ?? -1;
+    img.state.postLeftOffset = left ?? -1;
+    img.state.postTopOffset = top ?? -1;
+    img.state.postWidth = width ?? -1;
+    img.state.postHeight = height ?? -1;
 };
 
 export function applyExtract(
-    state: ImgStateFields,
+    img: ImageState,
     { left, top, width, height }: { left: number; top: number, width: number; height: number; }
 ) {
     const l = left ?? -1;
@@ -33,40 +33,56 @@ export function applyExtract(
     const w = width ?? -1;
     const h = height ?? -1;
 
-    const hasResize = is.set(state.rsWidth) && is.set(state.rsHeight);
+    const hasResize = img.isRsized;
 
     // Pre
-    state.preLeftOffset = get.ifSet(state.preLeftOffset) ?? (!hasResize ? l : -1);
-    state.preTopOffset = get.ifSet(state.preTopOffset) ?? (!hasResize ? t : -1);
-    state.preWidth = get.ifSet(state.preWidth) ?? (!hasResize ? w : -1);
-    state.preHeight = get.ifSet(state.preHeight) ?? (!hasResize ? h : -1);
+    img.state.preLeftOffset = get.ifSet(img.state.preLeftOffset) ?? (!hasResize ? l : -1);
+    img.state.preTopOffset = get.ifSet(img.state.preTopOffset) ?? (!hasResize ? t : -1);
+    img.state.preWidth = get.ifSet(img.state.preWidth) ?? (!hasResize ? w : -1);
+    img.state.preHeight = get.ifSet(img.state.preHeight) ?? (!hasResize ? h : -1);
 
     // Post
-    state.postLeftOffset = hasResize ? l : -1;
-    state.postTopOffset = hasResize ? t : -1;
-    state.postWidth = hasResize ? w : -1;
-    state.postHeight = hasResize ? h : -1;
-};
+    img.state.postLeftOffset = hasResize ? l : -1;
+    img.state.postTopOffset = hasResize ? t : -1;
+    img.state.postWidth = hasResize ? w : -1;
+    img.state.postHeight = hasResize ? h : -1;
+
+    // rotate AND not resized AND at least one extraction is not set yet
+    if (img.isRotated && !img.isRsized) {
+        if (!img.isPreExtracted || !img.isPostExtracted) {
+            img.state.rotateBefore = true;
+        };
+    };
+}
 
 export function applyResize(
-    state: ImgStateFields,
+    img: ImageState,
     opts: ResizeContent,
 ) {
-    state.rsWidth = opts.width ?? -1;
-    state.rsHeight = opts.height ?? -1;
-    state.rsFit = opts.fit;
-    state.rsPosition = opts.position;
-    state.rsBackground = opts.background;
+    img.state.rsWidth = opts.width ?? -1;
+    img.state.rsHeight = opts.height ?? -1;
+    img.state.rsFit = opts.fit;
+    img.state.rsPosition = opts.position;
+    img.state.rsBackground = opts.background;
+
+    if (img.isRsized && img.isRotated) img.state.rotateBefore = true;
 };
 
 export function applyExtend(
-    state: ImgStateFields,
+    img: ImageState,
     opts: ExtendContent,
 ) {
-    state.extendTop = opts.top;
-    state.extendBottom = opts.bottom;
-    state.extendLeft = opts.left;
-    state.extendRight = opts.right;
-    state.extendBackground = opts.background;
-    console.log("apply extend, bg:", opts.background);
+    img.state.extendTop = opts.top;
+    img.state.extendBottom = opts.bottom;
+    img.state.extendLeft = opts.left;
+    img.state.extendRight = opts.right;
+    img.state.extendBackground = opts.background;
+};
+
+export function applyRotate(
+    img: ImageState,
+    opts: RotateContent,
+) {
+    img.state.rotateAngle = opts.degrees;
+    img.state.rotateBackground = opts.background;
 };

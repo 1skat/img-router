@@ -21,22 +21,32 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     };
 
     const { origWidth: origW, origHeight: origH } = ctx.img.state;
-    const scale = Math.max(width / origW, height / origH);
+    const scale = Math.max(width / origW, height / origH); // scale of the unconsrained side
 
+    // Full image size
     const resizedW = Math.round(origW * scale);
     const resizedH = Math.round(origH * scale);
 
     if (x && (width + x) > resizedW) throw new Error(`x out of boundary. Max x: ${resizedW - width}, received: ${x}`);
     if (y && (height + y) > resizedH) throw new Error(`y out of boundary. Max y: ${resizedH - height}, received: ${y}`);
 
-    ctx.updateState("resize", { width: resizedW, height: resizedH });
-    ctx.updateState("extract", {
-        left: x,
-        top: y,
-        width: width,
-        height: height,
-    });
-    return;
+    ctx.updateState("resize", { width: resizedW, height: resizedH }); // resize to full image
+    if (ctx.img.isPreExtracted) { // update the underlying viewport of the preExtract area
+        ctx.updateState("preExtract", {
+            left: x,
+            top: y,
+            width: width,
+            height: height,
+        });
+        return;
+    };
+    // ctx.updateState("extract", {
+    //     left: x,
+    //     top: y,
+    //     width: width,
+    //     height: height,
+    // });
+    // return;
 };
 
 function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: number, height?: number }, opts: ResizeType) {
@@ -51,6 +61,7 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
     if (x || y) throw new Error("no space available for padding");
 
     const ar = ctx.img.getAspectRatio;
+    console.log(ar);
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 

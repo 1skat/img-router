@@ -27,11 +27,18 @@ export class ImageState {
             extendBottom: undefined,
             extendLeft: undefined,
             extendRight: undefined,
+            extendBackground: undefined,
+            rotateAngle: 0,
+            rotateBackground: undefined,
+            rotateBefore: false,
         };
     };
 
+    get isRotated() {
+        return (this.state.rotateAngle % 360) !== 0;
+    };
     get isRsized() {
-        return is.set(this.state.rsWidth) || is.set(this.state.rsHeight);
+        return this.state.rsWidth !== -1 || this.state.rsHeight !== -1;
     };
     get isPreExtracted() {
         return is.set(this.state.preWidth) && is.set(this.state.preHeight);
@@ -40,8 +47,22 @@ export class ImageState {
         return is.set(this.state.postWidth) && is.set(this.state.postHeight);
     };
 
+    get getCurrWidthV2() {
+        const rad = (this.state.rotateAngle * Math.PI) / 180;
+        return Math.round(
+            Math.abs(this.getCurrWidth * Math.cos(rad)) +
+            Math.abs(this.getCurrHeight * Math.sin(rad))
+        );  // collecting all cos
+    };
+    get getCurrHeightV2() {
+        const rad = (this.state.rotateAngle * Math.PI) / 180;
+        return Math.round(
+            Math.abs(this.getCurrWidth * Math.sin(rad)) +
+            Math.abs(this.getCurrHeight * Math.cos(rad))
+        );
+    };
     get getAspectRatio() {
-        return this.getCurrWidth / this.getCurrHeight;
+        return this.getCurrWidthV2 / this.getCurrHeightV2;
     };
     get getCurrWidth() {
         return (is.set(this.state.preWidth) && is.notSet(this.state.rsWidth))
@@ -62,4 +83,5 @@ export class ImageState {
     get isExtended() {
         return (this.state.extendTop || this.state.extendBottom || this.state.extendLeft || this.state.extendRight);
     };
+
 };

@@ -1,4 +1,5 @@
 import tinycolor from "tinycolor2";
+import { de } from "zod/v4/locales";
 export const functionHandlers = {
     extract: {
         w: resizeHandler,
@@ -39,6 +40,12 @@ export const functionHandlers = {
             bg: backgroundHandler,
         }
     },
+    rotate: {
+        degrees: rotateHandler,
+        opts: {
+            bg: backgroundHandler,
+        }
+    }
 };
 
 function axisHandler(vals: string) {
@@ -174,5 +181,17 @@ function paddingSideHandler(vals: string) {
 
     console.log(match);
     return { left: match.includes("l"), top: match.includes("t"), bottom: match.includes("b"), right: match.includes("r") };
+};
+
+function rotateHandler(vals: string) {
+    if (!vals.trim()) throw new Error("parameter required after `rt`");
+
+    const match = vals.match(/^-?[0-9]\d*$/);
+    if (!match) throw new Error("invalid rotate parameter");
+
+    const degrees = parseInt(match[0]);
+    if (degrees < -360 || degrees > 360) throw new Error("invalid rotate paramter. min: -360, max: 360");
+
+    return degrees;
 };
 

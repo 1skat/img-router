@@ -1,9 +1,5 @@
 import z from "zod";
 
-// Encoding map
-export interface QualityParams { quality?: number };
-export interface FormatParams { format?: string };
-
 export const ResizeSchema = z.object({
     w: z.number().optional(),
     h: z.number().optional(),
@@ -60,3 +56,14 @@ export const PaddingSchema = z.object({
     }).optional(),
 });
 export type PaddingType = z.infer<typeof PaddingSchema>;
+
+export const RotateSchema = z.object({
+    degrees: z.number().min(-356).max(360),
+    bg: z.object({
+        r: z.number().min(0).max(255),
+        g: z.number().min(0).max(255),
+        b: z.number().min(0).max(255),
+        alpha: z.number().min(0).max(1),
+    }).optional(),
+});
+export type RotateType = z.infer<typeof RotateSchema>;
