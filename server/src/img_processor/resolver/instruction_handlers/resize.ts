@@ -16,37 +16,32 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     out.background = bg;
 
     if (x === undefined && y === undefined) {
+        console.log(width, height)
         ctx.updateState("resize", out);
         return;
     };
 
-    const { origWidth: origW, origHeight: origH } = ctx.img.state;
-    const scale = Math.max(width / origW, height / origH); // scale of the unconsrained side
+    // const { origWidth: origW, origHeight: origH } = ctx.img.state;
+    // const scale = Math.max(width / origW, height / origH); // scale of the unconsrained side
+    const { getCurrWidthV2: currW, getCurrHeightV2: currH } = ctx.img;
+    const scaleV2 = Math.max(width / currW, height / currH); // 1000/800 and 500/350 given the ratio is 2.28
 
     // Full image size
-    const resizedW = Math.round(origW * scale);
-    const resizedH = Math.round(origH * scale);
+    const resizedW = Math.round(currW * scaleV2);
+    const resizedH = Math.round(currH * scaleV2);
+    console.log("Max image area:", resizedW, resizedH);
 
     if (x && (width + x) > resizedW) throw new Error(`x out of boundary. Max x: ${resizedW - width}, received: ${x}`);
     if (y && (height + y) > resizedH) throw new Error(`y out of boundary. Max y: ${resizedH - height}, received: ${y}`);
 
     ctx.updateState("resize", { width: resizedW, height: resizedH }); // resize to full image
-    if (ctx.img.isPreExtracted) { // update the underlying viewport of the preExtract area
-        ctx.updateState("preExtract", {
-            left: x,
-            top: y,
-            width: width,
-            height: height,
-        });
-        return;
-    };
-    // ctx.updateState("extract", {
-    //     left: x,
-    //     top: y,
-    //     width: width,
-    //     height: height,
-    // });
-    // return;
+    ctx.updateState("extract", { // resize to viewport
+        left: x,
+        top: y,
+        width: width,
+        height: height,
+    });
+    return;
 };
 
 function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: number, height?: number }, opts: ResizeType) {
@@ -55,7 +50,8 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
     const { width, height } = dimensions;
     const { fit, x, y, bg } = opts;
 
-    out.background = bg; out.fit = fit?.mode
+    out.background = bg;
+    out.fit = fit?.mode;
     out.position = fit?.position;
 
     if (x || y) throw new Error("no space available for padding");
@@ -65,6 +61,7 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 
+    console.log(out);
     ctx.updateState("resize", out);
     return;
 };

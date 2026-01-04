@@ -37,7 +37,7 @@ export function compile(img: ImageState) {
                 top: get.ifSet(img.state.preTopOffset) ?? 0,
                 width: img.state.preWidth,
                 height: img.state.preHeight,
-            }]
+            }],
         });
     };
     if (img.isRsized) {
@@ -63,15 +63,6 @@ export function compile(img: ImageState) {
             }],
         });
     };
-    if (!img.state.rotateBefore && img.isRotated) {
-        sharpInstructions.push({
-            method: "rotate",
-            content: [
-                img.state.rotateAngle,
-                { background: img.state.rotateBackground }
-            ],
-        });
-    };
     if (img.isExtended) {
         sharpInstructions.push({
             method: "extend", content: [{
@@ -84,9 +75,15 @@ export function compile(img: ImageState) {
         });
     };
 
-    if (img.isRotated) {
-
-    }
+    if (img.isRotated && !img.state.rotateBefore) {
+        sharpInstructions.push({
+            method: "rotate",
+            content: [
+                img.state.rotateAngle,
+                { background: img.state.rotateBackground }
+            ],
+        });
+    };
 
     return sharpInstructions;
 };

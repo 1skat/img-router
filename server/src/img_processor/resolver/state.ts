@@ -38,7 +38,7 @@ export class ImageState {
         return (this.state.rotateAngle % 360) !== 0;
     };
     get isRsized() {
-        return this.state.rsWidth !== -1 || this.state.rsHeight !== -1;
+        return this.state.rsWidth !== -1 && this.state.rsHeight !== -1;
     };
     get isPreExtracted() {
         return is.set(this.state.preWidth) && is.set(this.state.preHeight);
@@ -49,19 +49,43 @@ export class ImageState {
 
     get getCurrWidthV2() {
         const rad = (this.state.rotateAngle * Math.PI) / 180;
-        return Math.round(
-            Math.abs(this.getCurrWidth * Math.cos(rad)) +
-            Math.abs(this.getCurrHeight * Math.sin(rad))
-        );  // collecting all cos
+        const rtW = (w: number, h: number) => (Math.round(
+            Math.abs(w * Math.cos(rad)) +
+            Math.abs(h * Math.sin(rad))
+        ));
+
+        if (!this.isPreExtracted && !this.isRsized) { // original
+            return this.isRotated ? rtW(this.state.origWidth, this.state.origHeight) : this.state.origWidth;
+        };
+        if (this.isPreExtracted && !this.isRsized) {
+            // return this.state.preWidth;
+            return (this.isRotated && !this.state.rotateBefore) ? rtW(this.state.preWidth, this.state.preHeight) : this.state.preWidth;
+        };
+        if (this.isPostExtracted) {
+            return this.state.postWidth;
+        };
+        return this.state.rsWidth;
     };
     get getCurrHeightV2() {
         const rad = (this.state.rotateAngle * Math.PI) / 180;
-        return Math.round(
-            Math.abs(this.getCurrWidth * Math.sin(rad)) +
-            Math.abs(this.getCurrHeight * Math.cos(rad))
-        );
+        const rtH = (w: number, h: number) => (Math.round(
+            Math.abs(w * Math.sin(rad)) +
+            Math.abs(h * Math.cos(rad))
+        ));
+
+        if (!this.isPreExtracted && !this.isRsized) { // original
+            return this.isRotated ? rtH(this.state.origWidth, this.state.origHeight) : this.state.origHeight;
+        };
+        if (this.isPreExtracted && !this.isRsized) { // preWdith
+            return (this.isRotated && !this.state.rotateBefore) ? rtH(this.state.preWidth, this.state.preHeight) : this.state.preHeight;
+        };
+        if (this.isPostExtracted) {
+            return this.state.postHeight;
+        };
+        return this.state.rsHeight;
     };
     get getAspectRatio() {
+        console.log("aspect ratio", this.getCurrWidthV2, this.getCurrHeightV2);
         return this.getCurrWidthV2 / this.getCurrHeightV2;
     };
     get getCurrWidth() {

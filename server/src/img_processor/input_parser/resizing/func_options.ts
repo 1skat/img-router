@@ -179,7 +179,6 @@ function paddingSideHandler(vals: string) {
     const match = vals.match(/[ltbr]/g);
     if (!match || new Set(match).size !== match.length) throw new Error("invalid padding side parameters");
 
-    console.log(match);
     return { left: match.includes("l"), top: match.includes("t"), bottom: match.includes("b"), right: match.includes("r") };
 };
 
