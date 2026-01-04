@@ -2,10 +2,10 @@ import type { AspectRatioType } from "@/img_processor/types";
 import type { TransformationResolver } from "../resolver";
 
 export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRatioType): void => {
-    const { w, h, fit } = data; // 800x300
+    const { w, h, fit } = data;
 
-    const targetAr = w / h;
     const currAr = ctx.img.getAspectRatio;
+    const targetAr = w / h;
 
     const currWidth = ctx.img.getCurrWidth;
     const currHeight = ctx.img.getCurrHeight;
@@ -14,6 +14,8 @@ export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRati
     const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr);
 
     if (ctx.img.isPostExtracted) {
+        if (newWidth > ctx.img.state.rsWidth) throw new Error(`aspect ratio: max width exceded`);
+        if (newHeight > ctx.img.state.rsHeight) throw new Error(`aspect ratio: max height exceded`);
         ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.state.postLeftOffset, top: ctx.img.state.postTopOffset });
     }
     else if (!ctx.img.isRsized && ctx.img.isPreExtracted) {
@@ -45,22 +47,4 @@ export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRati
 
     // ar > tr is width === height*tr
     // ar < tr height === width/tr
-
-
-
-
-    // const { width, height } = ctx.state;
-    // const { wRatio, hRatio } = value;
-
-    // if (!wRatio || !hRatio) throw new Error("aspect ratio undefined");
-
-    // const currRatio = width / height;
-    // const targetRatio = wRatio / hRatio;
-
-    // const outWidth = (currRatio > targetRatio) ? Math.round(height * targetRatio) : width;
-    // const outHeight = (currRatio < targetRatio) ? Math.round(width / targetRatio) : height;
-
-    // ctx.addInstruction("resize", { width: outWidth, height: outHeight });
-    // ctx.state.applyResize({ width: outWidth, height: outHeight });
-    // return;
 };

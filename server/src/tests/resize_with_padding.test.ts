@@ -4,7 +4,7 @@ import path from "path";
 import type { Sharp, SharpOptions } from "sharp";
 
 import { tryCatch } from "@/utils/try-catch";
-import { buildSharpTransformerV3 } from "@/img_processor/ix_builder/build_transform";
+import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import sharp from "sharp";
 import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
 
@@ -56,7 +56,7 @@ describe("resize + padding functions", () => {
                 };
 
                 const sharpInstructionChain = resolvedSharpInstructions(meta, input);
-                const transformers = buildSharpTransformerV3(sharpInstructionChain);
+                const transformers = buildSharpTransformer(sharpInstructionChain);
                 transformers.forEach((applyTransform: any) => applyTransform(sharpInst));
 
                 expect(sharpInst.options.leftOffsetPre).toBe(expected.leftOffsetPre);

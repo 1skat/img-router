@@ -21,23 +21,24 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
         return;
     };
 
-    // const { origWidth: origW, origHeight: origH } = ctx.img.state;
-    // const scale = Math.max(width / origW, height / origH); // scale of the unconsrained side
     const { getCurrWidthV2: currW, getCurrHeightV2: currH } = ctx.img;
-    const scaleV2 = Math.max(width / currW, height / currH); // 1000/800 and 500/350 given the ratio is 2.28
+    const scale = Math.max(width / currW, height / currH); // 1000/800 and 500/350 given the ratio is 2.28
 
     // Full image size
-    const resizedW = Math.round(currW * scaleV2);
-    const resizedH = Math.round(currH * scaleV2);
-    console.log("Max image area:", resizedW, resizedH);
+    const resizedW = Math.round(currW * scale);
+    const resizedH = Math.round(currH * scale);
+    console.log("Max image area:", resizedW, resizedH); // 900, 1209
 
-    if (x && (width + x) > resizedW) throw new Error(`x out of boundary. Max x: ${resizedW - width}, received: ${x}`);
-    if (y && (height + y) > resizedH) throw new Error(`y out of boundary. Max y: ${resizedH - height}, received: ${y}`);
+    if ((width + x) === resizedW || (width + x) > resizedW) throw new Error(`x out of boundary. Max offset: ${resizedW - width}px`);
+    if ((height + y) === resizedH || (height + y) > resizedH) throw new Error(`y out of boundary. Max offset: ${resizedH - height}px`);
+
+    const left = x ?? Math.round((resizedW - width) / 2);
+    const top = y ?? Math.round((resizedH - height) / 2);
 
     ctx.updateState("resize", { width: resizedW, height: resizedH }); // resize to full image
     ctx.updateState("extract", { // resize to viewport
-        left: x,
-        top: y,
+        left: left,
+        top: top,
         width: width,
         height: height,
     });
