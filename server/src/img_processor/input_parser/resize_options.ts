@@ -1,6 +1,5 @@
 import tinycolor from "tinycolor2";
-import { de } from "zod/v4/locales";
-export const functionHandlers = {
+export const resizeFunctionHandlers = {
     extract: {
         w: resizeHandler,
         h: resizeHandler,

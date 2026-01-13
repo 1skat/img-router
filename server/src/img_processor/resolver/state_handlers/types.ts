@@ -43,6 +43,8 @@ export type RotateContent = {
     } | undefined;
 };
 
+export type FormatContent = "png" | "jpeg" | "avif" | "webp";
+
 export type AddInstructionType = {
     preExtract: ExtractContent,
     postExtract: ExtractContent,
@@ -50,5 +52,9 @@ export type AddInstructionType = {
     resize: ResizeContent,
     extend: ExtendContent,
     rotate: RotateContent,
+    flip: boolean,
+    flop: boolean,
+    format: FormatContent,
+    quality: number,
 };
 

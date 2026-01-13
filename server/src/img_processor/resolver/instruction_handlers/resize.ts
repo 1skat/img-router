@@ -3,8 +3,9 @@ import type { AspectRatioType, ResizeType } from "../../types";
 import type { ResizeOptions } from "sharp";
 import type sharp from "sharp";
 import { unescape } from "querystring";
+import type { ImageState } from "../state";
 
-function handleBothSides(ctx: TransformationResolver, dimensions: { width: number, height: number }, opts: ResizeType) {
+function handleBothSides(ctx: ImageState, dimensions: { width: number, height: number }, opts: ResizeType) {
     const out: ResizeOptions = {};
     const { width, height } = dimensions;
     const { fit, bg, x, y } = opts;
@@ -21,13 +22,12 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
         return;
     };
 
-    const { getCurrWidthV2: currW, getCurrHeightV2: currH } = ctx.img;
+    const { getCurrWidthV2: currW, getCurrHeightV2: currH } = ctx;
     const scale = Math.max(width / currW, height / currH); // 1000/800 and 500/350 given the ratio is 2.28
 
     // Full image size
     const resizedW = Math.round(currW * scale);
     const resizedH = Math.round(currH * scale);
-    console.log("Max image area:", resizedW, resizedH); // 900, 1209
 
     if ((width + x) === resizedW || (width + x) > resizedW) throw new Error(`x out of boundary. Max offset: ${resizedW - width}px`);
     if ((height + y) === resizedH || (height + y) > resizedH) throw new Error(`y out of boundary. Max offset: ${resizedH - height}px`);
@@ -45,7 +45,7 @@ function handleBothSides(ctx: TransformationResolver, dimensions: { width: numbe
     return;
 };
 
-function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: number, height?: number }, opts: ResizeType) {
+function handleSingleSide(ctx: ImageState, dimensions: { width?: number, height?: number }, opts: ResizeType) {
     const out: sharp.ResizeOptions = {};
 
     const { width, height } = dimensions;
@@ -57,17 +57,15 @@ function handleSingleSide(ctx: TransformationResolver, dimensions: { width?: num
 
     if (x || y) throw new Error("no space available for padding");
 
-    const ar = ctx.img.getAspectRatio;
-    console.log(ar);
+    const ar = ctx.getAspectRatio;
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 
-    console.log(out);
     ctx.updateState("resize", out);
     return;
 };
 
-export const resolveResize = (ctx: TransformationResolver, data: ResizeType): void => {
+export const resolveResize = (ctx: ImageState, data: ResizeType): void => {
     const { w: width, h: height, x, y } = data;
     if (!width && !height) throw new Error("resize: at least one dimension required");
 

@@ -40,9 +40,24 @@ export type ImgStateFields = {
         b: number;
         alpha: number;
     } | undefined;
+    flip: Boolean,
+    flop: Boolean,
+    formatOut: "png" | "jpeg" | "avif" | "webp" | undefined,
+    formatQuality: number | undefined,
 };
 
 export type StateMap = {
     [key: string]: (state: ImageState, args: any) => void;
+};
+
+type SupportedImageFormat =
+    | "webp"
+    | "avif"
+    | "png"
+    | "jpeg"
+
+export type UserSettings = {
+    format: SupportedImageFormat,
+    quality: number,
 };
 

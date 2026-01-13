@@ -2,8 +2,9 @@ import type { PaddingType } from "@/img_processor/types";
 import type { TransformationResolver } from "../resolver";
 import type { ExtendOptions } from "sharp";
 import type { ExtendContent } from "../state_handlers/types";
+import type { ImageState } from "../state";
 
-export function resolvePadding(ctx: TransformationResolver, data: PaddingType) {
+export function resolvePadding(ctx: ImageState, data: PaddingType) {
     const out: ExtendContent = {};
     const { px, side, bg } = data;
 

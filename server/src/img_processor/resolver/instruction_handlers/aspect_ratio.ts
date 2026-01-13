@@ -1,25 +1,26 @@
 import type { AspectRatioType } from "@/img_processor/types";
 import type { TransformationResolver } from "../resolver";
+import type { ImageState } from "../state";
 
-export const resolveAspectRatio = (ctx: TransformationResolver, data: AspectRatioType): void => {
+export const resolveAspectRatio = (ctx: ImageState, data: AspectRatioType): void => {
     const { w, h, fit } = data;
 
-    const currAr = ctx.img.getAspectRatio;
+    const currAr = ctx.getAspectRatio;
     const targetAr = w / h;
 
-    const currWidth = ctx.img.getCurrWidth;
-    const currHeight = ctx.img.getCurrHeight;
+    const currWidth = ctx.getCurrWidth;
+    const currHeight = ctx.getCurrHeight;
 
     const newWidth = (fit === "w") ? currWidth : Math.round(currHeight * targetAr);
     const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr);
 
-    if (ctx.img.isPostExtracted) {
-        if (newWidth > ctx.img.state.rsWidth) throw new Error(`aspect ratio: max width exceded`);
-        if (newHeight > ctx.img.state.rsHeight) throw new Error(`aspect ratio: max height exceded`);
-        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.img.state.postLeftOffset, top: ctx.img.state.postTopOffset });
+    if (ctx.isPostExtracted) {
+        if (newWidth > ctx.state.rsWidth) throw new Error(`aspect ratio: max width exceded`);
+        if (newHeight > ctx.state.rsHeight) throw new Error(`aspect ratio: max height exceded`);
+        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.state.postLeftOffset, top: ctx.state.postTopOffset });
     }
-    else if (!ctx.img.isRsized && ctx.img.isPreExtracted) {
-        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.img.state.preLeftOffset, top: ctx.img.state.preTopOffset });
+    else if (!ctx.isRsized && ctx.isPreExtracted) {
+        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.state.preLeftOffset, top: ctx.state.preTopOffset });
     }
     else {
         ctx.updateState("resize", { width: newWidth, height: newHeight });

@@ -2,12 +2,16 @@ import sharp from "sharp";
 import type { TransformationResolver } from "./resolver";
 import { ImageState } from "./state";
 import { get } from "./helpers";
+import type { UserSettings } from "./types";
 
 type SharpContentTypes = {
     rotate: [number, sharp.RotateOptions],
     resize: [sharp.ResizeOptions],
     extract: [sharp.Region],
     extend: [sharp.ExtendOptions],
+    flip: [boolean],
+    flop: [boolean],
+    toFormat: ["png" | "jpeg" | "avif" | "webp", { quality: number }]
 };
 
 type SharpInstr = {
@@ -17,7 +21,7 @@ type SharpInstr = {
     }
 }[keyof SharpContentTypes];
 
-export function compile(img: ImageState) {
+export function compile(img: ImageState, settings: UserSettings) {
     const sharpInstructions: SharpInstr[] = [];
 
     if (img.state.rotateBefore && img.isRotated) {
@@ -75,12 +79,30 @@ export function compile(img: ImageState) {
         });
     };
 
+    if (img.isFlipedORFloped) {
+        sharpInstructions.push({
+            method: img.state.flip ? "flip" : "flop",
+            content: [true]
+        });
+    };
+
     if (img.isRotated && !img.state.rotateBefore) {
         sharpInstructions.push({
             method: "rotate",
             content: [
                 img.state.rotateAngle,
                 { background: img.state.rotateBackground }
+            ],
+        });
+    };
+
+    // encoding
+    if (img.state.formatOut || settings.format) {
+        sharpInstructions.push({
+            method: "toFormat",
+            content: [
+                img.state.formatOut ?? settings.format,
+                { quality: img.state.formatQuality ?? settings.quality }
             ],
         });
     };

@@ -1,9 +1,15 @@
 import { tryCatch } from "@/utils/try-catch";
-import { functionHandlers } from "../resizing/func_options";
+import { resizeFunctionHandlers } from "../resizing/func_options";
+import { encodingFunctionHandlers } from "../encoding/func_options";
+
+const funcHandlers = {
+    ...resizeFunctionHandlers,
+    ...encodingFunctionHandlers,
+};
 
 export function parseImgFuncArgs(data: string, fnName: string) {
     const extracted: Record<string, any> = {};
-    const funcHandler = functionHandlers[fnName];
+    const funcHandler = funcHandlers[fnName];
     if (!funcHandler) throw new Error(`Function handlers not found: ${fnName}`);
 
     const parseKVs = (key: string, val: string, handlers: Record<string, Function>) => {
@@ -17,7 +23,7 @@ export function parseImgFuncArgs(data: string, fnName: string) {
         Object.assign(extracted, { [key]: parsedValue });
     };
 
-    const { mainParams, optionalParams } = getFuncParams(funcHandler);
+    const { mainParams, optionalParams } = getFuncParamNames(funcHandler);
 
     const argsArray = data.split(",").map(arg => arg.trim());
     const args = argsArray.filter(a => !a.includes(":"));
@@ -40,7 +46,7 @@ export function parseImgFuncArgs(data: string, fnName: string) {
     return extracted;
 };
 
-function getFuncParams(handler: Record<string, Function>) {
+function getFuncParamNames(handler: Record<string, Function>) {
     const { opts = {}, ...mainParams } = handler;
     return {
         mainParams: Object.keys(mainParams),

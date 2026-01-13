@@ -7,9 +7,10 @@ import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
-import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
+import { resolveSharpInstructions } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
-import { ParameterParser } from "@/img_processor/input_parser/parser";
+import { ParameterParser } from "@/img_processor/input_parser/url_parser";
+import { getBestFormat } from "@/utils/best_format";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -46,6 +47,20 @@ export const imageRoutes = new Elysia()
         //     return { error: "S3: failed to get image" };
         // };
 
+        // 1: prase parameter transformations
+        if (!trString) return;
+        const [parsedParamChains, paramErr] = tryCatch(() => new ParameterParser().parseParams(trString));
+        if (paramErr) {
+            set.status = 400;
+            return { error: paramErr.message }
+        };
+
+        const buf = fs.readFileSync(path.join(__dirname, "./audi_main.png"));
+        // const buf = await imgStream.transformToByteArray();
+
+        let sharpInstance = sharp(buf);
+        const imgMetadata = await sharpInstance.metadata();
+
         // Client hints:
         const userDeviceSupportedFormats = headers["accept"] ?? "";
 
@@ -56,55 +71,42 @@ export const imageRoutes = new Elysia()
             return { error: accSettingsErr.message };
         };
 
-        const { useBestFormat, defaultQuality, dataSaveMode } = accSettings;
-        const accountSettings = {
-            encoding: {
-                format: useBestFormat ? (userDeviceSupportedFormats) : undefined,
-                quality: defaultQuality,
-            },
-        };
-
-        const buf = fs.readFileSync(path.join(__dirname, "./audi_main.png"));
-        // const buf = await imgStream.transformToByteArray();
-
-        let sharpInstance = sharp(buf);
-        const imgMetadata = await sharpInstance.metadata();
-
-        // 1: prase parameter transformations
-        if (!trString) return;
-        const [parsedParamChains, paramErr] = tryCatch(() => new ParameterParser().parseParams(trString));
-        if (paramErr) {
-            set.status = 400;
-            return { error: paramErr.message }
+        const settings = {
+            format: accSettings.useBestFormat ? getBestFormat(userDeviceSupportedFormats, imgMetadata) : undefined,
+            quality: accSettings.defaultQuality,
         };
 
         // 2: build transformation instructions for sharp
-        const [sharpInstructionChain, resolverErr] = tryCatch(() => resolvedSharpInstructions(imgMetadata, parsedParamChains, accSettings));
+        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, settings));
         if (resolverErr) {
             set.status = 400;
             return { error: resolverErr.message };
         };
 
-        // 3: build sharp transformers from insructions
-        const transformers = buildSharpTransformer(sharpInstructionChain);
+        // // 3: build sharp transformers from insructions
+        // const transformers = buildSharpTransformer(sharpInstructionChain);
 
-        for (const [i, applyTransform] of transformers.entries()) {
-            sharpInstance = applyTransform(sharpInstance);
-            const {
-                leftOffsetPre, topOffsetPre, topOffset, widthPre, heightPre,
-                leftOffsetPost, topOffsetPost, widthPost, heightPost,
-                width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore
-            } = sharpInstance.options;
-            const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore };
-            console.log(sliced);
-            // console.log(sharpInstance.options);
-        };
+        // for (const [i, applyTransform] of transformers.entries()) {
+        //     sharpInstance = applyTransform(sharpInstance);
+        //     const {
+        //         leftOffsetPre, topOffsetPre, topOffset, widthPre, heightPre,
+        //         leftOffsetPost, topOffsetPost, widthPost, heightPost,
+        //         width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore
+        //     } = sharpInstance.options;
+        //     const sliced = { leftOffsetPre, topOffsetPre, widthPre, heightPre, leftOffsetPost, topOffsetPost, widthPost, heightPost, width, height, canvas, position, resizeBackground, angle, rotationAngle, rotationBackground, rotateBefore, orientBefore };
+        //     // console.log(sliced);
+        //     console.log(sharpInstance.options);
+        // };
 
+
+        const meta = await sharp(finalBuf).metadata();
         set.headers = {
-            "Content-Type": "image/png",
+            "Content-Type": `image/${meta.format}`,
         };
         set.status = 200;
 
-        const outBuffer = await sharpInstance.toBuffer();
-        return outBuffer;
+        return finalBuf;
+        // const outBuffer = await sharpInstructionChain;
+        // const outBuffer = await sharpInstance.toBuffer();
+        // return outBuffer;
     });

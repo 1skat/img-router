@@ -1,6 +1,8 @@
 import type sharp from "sharp";
 import type { ImgStateFields } from "./types";
 import { get, is } from "./helpers";
+import { ImageStateMap } from "./hashmaps";
+import type { AddInstructionType } from "./state_handlers/types";
 
 export class ImageState {
     public state: ImgStateFields;
@@ -31,14 +33,21 @@ export class ImageState {
             rotateAngle: 0,
             rotateBackground: undefined,
             rotateBefore: false,
+            flip: false,
+            flop: false,
+            formatOut: undefined,
+            formatQuality: undefined,
         };
     };
 
+    get isFlipedORFloped() {
+        return this.state.flip || this.state.flop;
+    };
     get isRotated() {
         return (this.state.rotateAngle % 360) !== 0;
     };
     get isRsized() {
-        return this.state.rsWidth !== -1 && this.state.rsHeight !== -1;
+        return is.set(this.state.rsWidth) && is.set(this.state.rsHeight);
     };
     get isPreExtracted() {
         return is.set(this.state.preWidth) && is.set(this.state.preHeight);
@@ -85,7 +94,6 @@ export class ImageState {
         return this.state.rsHeight;
     };
     get getAspectRatio() {
-        console.log("aspect ratio", this.getCurrWidthV2, this.getCurrHeightV2);
         return this.getCurrWidthV2 / this.getCurrHeightV2;
     };
     get getCurrWidth() {
@@ -108,4 +116,10 @@ export class ImageState {
         return (this.state.extendTop || this.state.extendBottom || this.state.extendLeft || this.state.extendRight);
     };
 
+    updateState<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {
+        const applier = ImageStateMap[sharpMethod];
+        if (!applier) throw new Error(`failed to get state handler for ${sharpMethod}`);
+
+        applier(this, methodArgs);
+    };
 };

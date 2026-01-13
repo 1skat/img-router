@@ -67,3 +67,13 @@ export const RotateSchema = z.object({
     }).optional(),
 });
 export type RotateType = z.infer<typeof RotateSchema>;
+
+export const QualitySchema = z.object({
+    num: z.number().min(10).max(100).default(80),
+});
+export type QualityType = z.infer<typeof QualitySchema>;
+
+export const FormatSchema = z.object({
+    ext: z.enum(["png", "jpeg", "avif", "webp"]),
+});
+export type FormatType = z.infer<typeof FormatSchema>;

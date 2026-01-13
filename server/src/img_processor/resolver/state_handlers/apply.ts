@@ -1,8 +1,9 @@
 import type { ImgStateFields } from "@/img_processor/resolver/types"
 import { is, get } from "@/img_processor/resolver/helpers";
 import type sharp from "sharp";
-import type { ExtendContent, ExtractContent, ResizeContent, RotateContent } from "./types";
+import type { ExtendContent, ExtractContent, FormatContent, ResizeContent, RotateContent } from "./types";
 import type { ImageState } from "../state";
+import type { QualityType } from "@/img_processor/types";
 
 export function applyPreExtract(
     img: ImageState,
@@ -86,3 +87,20 @@ export function applyRotate(
     img.state.rotateAngle = opts.degrees;
     img.state.rotateBackground = opts.background;
 };
+
+export function applyFlip(img: ImageState, val: boolean) {
+    img.state.flip = val;
+};
+
+export function applyFlop(img: ImageState, val: boolean) {
+    img.state.flop = val;
+};
+
+export function applyFormat(img: ImageState, val: FormatContent) {
+    img.state.formatOut = val;
+};
+
+export function applyQuality(img: ImageState, val: number) {
+    img.state.formatQuality = val;
+};
+

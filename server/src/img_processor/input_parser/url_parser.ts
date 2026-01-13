@@ -1,11 +1,12 @@
 import { tryCatch } from "@/utils/try-catch";
-import { resizeParameters } from "./resizing/func_map";
+import { encodingParameters, resizeParameters } from "./fn_parsers";
 
 export class ParameterParser {
     parameterMap: Record<string, any>;
     constructor() {
         this.parameterMap = {
             ...resizeParameters,
+            ...encodingParameters,
         };
     };
 
@@ -22,6 +23,7 @@ export class ParameterParser {
                 typeof content === "object"
                     ? Object.assign(acc[method], content)
                     : (acc[method] = content);
+
                 return acc;
             }, transformationMap);
         });
@@ -46,12 +48,12 @@ export class ParameterParser {
                 const spec = this.parameterMap[m];
                 if (!spec) throw new Error(`Unknown key '${m}'`);
 
-                const [handlerResult, handlerErr] = tryCatch(() => spec.parser(c?.replace(/^\(|\)$/g, "")));
+                const { group, methodKey, parser } = spec;
+
+                const [handlerResult, handlerErr] = tryCatch(() => parser(c?.replace(/^\(|\)$/g, "")));
                 if (handlerErr) throw handlerErr;
 
-                const specKey = spec.k;
-
-                return [specKey, handlerResult]
+                return [methodKey, handlerResult];
             });
     };
 };
