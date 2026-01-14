@@ -1,6 +1,6 @@
 import { tryCatch } from "@/utils/try-catch";
-import { resizeFunctionHandlers } from "../resizing/func_options";
-import { encodingFunctionHandlers } from "../encoding/func_options";
+import { resizeFunctionHandlers } from "../resize_options";
+import { encodingFunctionHandlers } from "../encode_options";
 
 const funcHandlers = {
     ...resizeFunctionHandlers,

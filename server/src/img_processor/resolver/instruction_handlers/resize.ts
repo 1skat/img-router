@@ -29,8 +29,11 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
     const resizedW = Math.round(currW * scale);
     const resizedH = Math.round(currH * scale);
 
-    if ((width + x) === resizedW || (width + x) > resizedW) throw new Error(`x out of boundary. Max offset: ${resizedW - width}px`);
-    if ((height + y) === resizedH || (height + y) > resizedH) throw new Error(`y out of boundary. Max offset: ${resizedH - height}px`);
+    const maxTop = resizedH - height;
+    const maxLeft = resizedW - width;
+    console.log(maxTop, maxLeft);
+    if (x > maxLeft || (x === 0 && maxLeft === 0)) throw new Error(`x out of boundary. Max offset: ${resizedW - width}px`);
+    if (y > maxTop || (y === 0 && maxTop === 0)) throw new Error(`y out of boundary. Max offset: ${resizedH - height}px`);
 
     const left = x ?? Math.round((resizedW - width) / 2);
     const top = y ?? Math.round((resizedH - height) / 2);
