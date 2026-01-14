@@ -5,8 +5,8 @@ import type { Sharp, SharpOptions } from "sharp";
 
 import { tryCatch } from "@/utils/try-catch";
 import sharp from "sharp";
-import { resolvedSharpInstructions } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
+import { getFinalSharpInstance, resolveSharpInstructions, TransformationResolver } from "@/img_processor/resolver/resolver";
 
 interface SharpWithOptions extends Sharp {
     options: any,
@@ -47,17 +47,24 @@ describe("resize functions", () => {
     for (const [imgName, testObj] of Object.entries(testSuite)) {
         const { buf, meta, testSuite } = testObj;
         for (const { name, input, expected } of testSuite) {
-            test(`${imgName}:${meta.width}x${meta.height} -> ${name}`, () => {
-                let sharpInst = sharp(buf) as SharpWithOptions;
+            test(`${imgName}:${meta.width}x${meta.height} -> ${name}`, async () => {
+                const defaultSettings = {
+                    format: undefined,
+                    quality: 80,
+                };
 
                 if ("error" in expected) {
-                    expect(() => resolvedSharpInstructions(meta, input)).toThrow(expected.error);
+                    const resolver = new TransformationResolver(defaultSettings);
+                    const sharpInst = await getFinalSharpInstance(buf, input, resolver);
+                    expect(() => resolveSharpInstructions(buf, input, defaultSettings)).toThrow(expected.error);
                     return;
                 };
 
-                const sharpInstructionChain = resolvedSharpInstructions(meta, input);
-                const transformers = buildSharpTransformer(sharpInstructionChain);
-                transformers.forEach((applyTransform: any) => applyTransform(sharpInst));
+                const resolver = new TransformationResolver(defaultSettings);
+                let sharpInst = sharp() as SharpWithOptions;
+                for (const chain of input) {
+                    sharpInst = await getFinalSharpInstance(buf, chain, resolver);
+                };
 
                 expect(sharpInst.options.leftOffsetPre).toBe(expected.leftOffsetPre);
                 expect(sharpInst.options.topOffsetPre).toBe(expected.topOffsetPre);

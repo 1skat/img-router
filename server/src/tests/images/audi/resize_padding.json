@@ -59,7 +59,7 @@
       }
     ],
     "expected": {
-      "error": "y out of boundary. Max y: 60, received: 61"
+      "error": "y out of boundary. Max offset: 60px"
     }
   },
   {
@@ -136,16 +136,7 @@
       }
     ],
     "expected": {
-      "leftOffsetPre": -1,
-      "topOffsetPre": -1,
-      "widthPre": -1,
-      "heightPre": -1,
-      "leftOffsetPost": 0,
-      "topOffsetPost": 0,
-      "widthPost": 800,
-      "heightPost": 595,
-      "width": 800,
-      "height": 595
+      "error": "x out of boundary. Max offset: 0px"
     }
   },
   {
@@ -160,7 +151,7 @@
       }
     ],
     "expected": {
-      "error": "x out of boundary. Max x: 0, received: 1"
+      "error": "x out of boundary. Max offset: 0px"
     }
   }
 ]

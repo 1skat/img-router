@@ -7,7 +7,7 @@ import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { getAccountSettings } from "@/internal/db/redis";
-import { resolveSharpInstructions } from "@/img_processor/resolver/resolver";
+import { resolveSharpInstructions, resolveSharpInstructionsV2 } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/url_parser";
 import { getBestFormat } from "@/utils/best_format";
@@ -77,7 +77,7 @@ export const imageRoutes = new Elysia()
         };
 
         // 2: build transformation instructions for sharp
-        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, settings));
+        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructionsV2(buf, parsedParamChains, settings));
         if (resolverErr) {
             set.status = 400;
             return { error: resolverErr.message };

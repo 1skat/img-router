@@ -1,6 +1,5 @@
-0. remove group
+0. Write unit tests for all methods - default settings
+1. Clean up the code base
 
-1. make the order of compiling (resizing first, encoding second) 
-2. apply user settings (encoding)
-----
-3. Client hints and caching 
+2. Client hints and caching
+3. rabbitMQ
