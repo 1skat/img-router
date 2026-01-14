@@ -12,7 +12,7 @@ interface SharpWithOptions extends Sharp {
     options: any,
 };
 
-const RESIZE_PADDING_TEST_FILE = "resize_padding.json"
+const ZOOM_TEST_FILE = "zoom.json"
 
 async function getTestSuite() {
     const testObj: Record<string, any> = {};
@@ -26,7 +26,7 @@ async function getTestSuite() {
             continue
         };
 
-        const testFile = fs.readdirSync(dirPath).find(f => f === RESIZE_PADDING_TEST_FILE);
+        const testFile = fs.readdirSync(dirPath).find(f => f === ZOOM_TEST_FILE);
         if (!testFile) {
             console.warn("transform file not found", dirPath);
             continue
@@ -43,7 +43,7 @@ async function getTestSuite() {
 
 const testSuite = await getTestSuite();
 
-describe("resize + padding functions", () => {
+describe("zoom", () => {
     for (const [imgName, testObj] of Object.entries(testSuite)) {
         const { buf, meta, testSuite } = testObj;
         for (const { name, input, expected } of testSuite) {
@@ -55,16 +55,16 @@ describe("resize + padding functions", () => {
 
                 if ("error" in expected) {
                     const resolver = new TransformationResolver(defaultSettings);
-                    const sharpInst = await getFinalSharpInstance(buf, input, resolver);
+                    const sharpInst = await getFinalSharpInstance(buf, input[0], resolver);
                     expect(() => resolveSharpInstructions(buf, input, defaultSettings)).toThrow(expected.error);
                     return;
                 };
 
                 const resolver = new TransformationResolver(defaultSettings);
-                let sharpInst = sharp() as SharpWithOptions;
+                let sharpInst = sharp();
                 for (const chain of input) {
                     sharpInst = await getFinalSharpInstance(buf, chain, resolver);
-                };
+                }
 
                 expect(sharpInst.options.leftOffsetPre).toBe(expected.leftOffsetPre);
                 expect(sharpInst.options.topOffsetPre).toBe(expected.topOffsetPre);
