@@ -37,6 +37,7 @@ export class ImageState {
             flop: false,
             formatOut: undefined,
             formatQuality: undefined,
+            isZoomed: false,
         };
     };
 
@@ -67,7 +68,6 @@ export class ImageState {
             return this.isRotated ? rtW(this.state.origWidth, this.state.origHeight) : this.state.origWidth;
         };
         if (this.isPreExtracted && !this.isRsized) {
-            // return this.state.preWidth;
             return (this.isRotated && !this.state.rotateBefore) ? rtW(this.state.preWidth, this.state.preHeight) : this.state.preWidth;
         };
         if (this.isPostExtracted) {

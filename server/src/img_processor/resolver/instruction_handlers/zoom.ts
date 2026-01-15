@@ -29,10 +29,11 @@ function handlePreResized(ctx: ImageState, data: ZoomType) {
     const scaledHeight = Math.round(pH * zoom);
     const left = Math.round((scaledWidth - pW) / 2);
     const top = Math.round((scaledHeight - pH) / 2);
-    ctx.updateState("resize", { width: scaledWidth, height: scaledHeight });
+    ctx.updateState("resize", { width: scaledWidth, height: scaledHeight, fit: "fill" });
     ctx.updateState("extract", {
         left: left, top: top, width: pW, height: pH,
     });
+    ctx.state.isZoomed = true;
 };
 
 function handlePostResized(ctx: ImageState, data: ZoomType) {
@@ -58,7 +59,7 @@ function handlePostResized(ctx: ImageState, data: ZoomType) {
     ctx.updateState("extract", {
         left: rawLeft, top: rawTop, width: postW, height: postH,
     });
-    return;
+    ctx.state.isZoomed = true;
 };
 
 function handleResized(ctx: ImageState, data: ZoomType) {
@@ -88,7 +89,7 @@ function handleResized(ctx: ImageState, data: ZoomType) {
     ctx.updateState("extract", {
         left: left + hpPx, top: top + vpPx, width: rsW, height: rsH,
     });
-    return;
+    ctx.state.isZoomed = true;
 };
 
 function handleOriginal(ctx: ImageState, data: ZoomType) {
@@ -105,5 +106,5 @@ function handleOriginal(ctx: ImageState, data: ZoomType) {
     ctx.updateState("extract", {
         left: left, top: top, width: origW, height: origH,
     });
-    return;
+    ctx.state.isZoomed = true;
 };

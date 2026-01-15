@@ -1,0 +1,248 @@
+[
+  {
+    "name": "tr:rt(90)",
+    "input": [
+      {
+        "rotate": {
+          "degrees": 90
+        }
+      }
+    ],
+    "expected": {
+      "leftOffsetPre": -1,
+      "topOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "leftOffsetPost": -1,
+      "topOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": -1,
+      "height": -1,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": false,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:rt(90),extr(200,300)",
+    "input": [
+      {
+        "rotate": {
+          "degrees": 90
+        },
+        "extract": {
+          "w": 200,
+          "h": 300
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 450,
+      "leftOffsetPre": 347,
+      "widthPre": 200,
+      "heightPre": 300,
+      "topOffsetPost": -1,
+      "leftOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": -1,
+      "height": -1,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": true,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:rt(90),extr(400,100,x:10,y:10)",
+    "input": [
+      {
+        "rotate": {
+          "degrees": 90
+        },
+        "extract": {
+          "w": 400,
+          "h": 100,
+          "x": 10,
+          "y": 10
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 10,
+      "leftOffsetPre": 10,
+      "widthPre": 400,
+      "heightPre": 100,
+      "topOffsetPost": -1,
+      "leftOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": -1,
+      "height": -1,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": true,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:extr(700,300),rt(-90)",
+    "input": [
+      {
+        "extract": {
+          "w": 700,
+          "h": 300
+        },
+        "rotate": {
+          "degrees": -90
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 297,
+      "leftOffsetPre": 250,
+      "widthPre": 700,
+      "heightPre": 300,
+      "topOffsetPost": -1,
+      "leftOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": -1,
+      "height": -1,
+      "angle": -90,
+      "rotationAngle": 0,
+      "rotateBefore": false,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:extr(200,450,x:666,y:333),rt(180)",
+    "input": [
+      {
+        "extract": {
+          "w": 200,
+          "h": 450,
+          "x": 666,
+          "y": 333
+        },
+        "rotate": {
+          "degrees": 180
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 333,
+      "leftOffsetPre": 666,
+      "widthPre": 200,
+      "heightPre": 450,
+      "topOffsetPost": -1,
+      "leftOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": -1,
+      "height": -1,
+      "angle": 180,
+      "rotationAngle": 0,
+      "rotateBefore": false,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:rt(90),rs(670,310)",
+    "input": [
+      {
+        "rotate": {
+          "degrees": 90
+        },
+        "resize": {
+          "w": 670,
+          "h": 310
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": -1,
+      "leftOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "topOffsetPost": -1,
+      "leftOffsetPost": -1,
+      "widthPost": -1,
+      "heightPost": -1,
+      "width": 670,
+      "height": 310,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": true,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:rt(90),rs(550,1000,x:0)",
+    "input": [
+      {
+        "rotate": {
+          "degrees": 90
+        },
+        "resize": {
+          "w": 550,
+          "h": 1000,
+          "x": 0
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": -1,
+      "leftOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "topOffsetPost": 0,
+      "leftOffsetPost": 0,
+      "widthPost": 550,
+      "heightPost": 1000,
+      "width": 744,
+      "height": 1000,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": true,
+      "orientBefore": false
+    }
+  },
+  {
+    "name": "tr:extr(400,150,x:20,y:500),z(2),rt(90)",
+    "input": [
+      {
+        "extract": {
+          "w": 400,
+          "h": 150,
+          "x": 20,
+          "y": 500
+        },
+        "zoom": {
+          "z": 2
+        },
+        "rotate": {
+          "degrees": 90
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 500,
+      "leftOffsetPre": 20,
+      "widthPre": 400,
+      "heightPre": 150,
+      "topOffsetPost": 200,
+      "leftOffsetPost": 75,
+      "widthPost": 150,
+      "heightPost": 400,
+      "width": 800,
+      "height": 300,
+      "angle": 90,
+      "rotationAngle": 0,
+      "rotateBefore": false,
+      "orientBefore": false
+    }
+  }
+]

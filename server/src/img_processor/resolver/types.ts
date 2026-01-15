@@ -40,10 +40,11 @@ export type ImgStateFields = {
         b: number;
         alpha: number;
     } | undefined;
-    flip: Boolean,
-    flop: Boolean,
+    flip: boolean,
+    flop: boolean,
     formatOut: "png" | "jpeg" | "avif" | "webp" | undefined,
     formatQuality: number | undefined,
+    isZoomed: boolean,
 };
 
 export type StateMap = {

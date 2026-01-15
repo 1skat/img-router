@@ -175,5 +175,32 @@
       "width": 2250,
       "height": 250
     }
+  },
+  {
+    "name": "tr:extr(100,500,x:331),z(2)",
+    "input": [
+      {
+        "extract": {
+          "w": 100,
+          "h": 500,
+          "x": 331
+        },
+        "zoom": {
+          "z": 2
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": 197,
+      "leftOffsetPre": 331,
+      "widthPre": 100,
+      "heightPre": 500,
+      "topOffsetPost": 250,
+      "leftOffsetPost": 50,
+      "widthPost": 100,
+      "heightPost": 500,
+      "width": 200,
+      "height": 1000
+    }
   }
 ]

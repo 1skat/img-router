@@ -6,7 +6,7 @@ import type { Sharp, SharpOptions } from "sharp";
 import { tryCatch } from "@/utils/try-catch";
 import sharp from "sharp";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
-import { getFinalSharpInstance, resolveSharpInstructions, TransformationResolver } from "@/img_processor/resolver/resolver";
+import { getFinalSharpInstance, TransformationResolver } from "@/img_processor/resolver/resolver";
 
 interface SharpWithOptions extends Sharp {
     options: any,
@@ -55,8 +55,7 @@ describe("resize functions", () => {
 
                 if ("error" in expected) {
                     const resolver = new TransformationResolver(defaultSettings);
-                    const sharpInst = await getFinalSharpInstance(buf, input, resolver);
-                    expect(() => resolveSharpInstructions(buf, input, defaultSettings)).toThrow(expected.error);
+                    expect(async () => await getFinalSharpInstance(buf, input[0], resolver)).toThrow(expected.error);
                     return;
                 };
 

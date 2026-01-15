@@ -12,7 +12,7 @@ interface SharpWithOptions extends Sharp {
     options: any,
 };
 
-const RESIZE_PADDING_TEST_FILE = "resize_padding.json"
+const ROTATE_TEST_FILE = "rotate.json"
 
 async function getTestSuite() {
     const testObj: Record<string, any> = {};
@@ -26,7 +26,7 @@ async function getTestSuite() {
             continue
         };
 
-        const testFile = fs.readdirSync(dirPath).find(f => f === RESIZE_PADDING_TEST_FILE);
+        const testFile = fs.readdirSync(dirPath).find(f => f === ROTATE_TEST_FILE);
         if (!testFile) {
             console.warn("transform file not found", dirPath);
             continue
@@ -43,7 +43,7 @@ async function getTestSuite() {
 
 const testSuite = await getTestSuite();
 
-describe("resize + padding functions", () => {
+describe("rotate", () => {
     for (const [imgName, testObj] of Object.entries(testSuite)) {
         const { buf, meta, testSuite } = testObj;
         for (const { name, input, expected } of testSuite) {
