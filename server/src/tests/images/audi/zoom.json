@@ -202,5 +202,110 @@
       "width": 200,
       "height": 1000
     }
+  },
+  {
+    "name": "tr:z(1.5,hp:20,vp:-100)",
+    "input": [
+      {
+        "zoom": {
+          "z": 1.5,
+          "hp": 20,
+          "vp": -100
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": -1,
+      "leftOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "topOffsetPost": 124,
+      "leftOffsetPost": 320,
+      "widthPost": 1200,
+      "heightPost": 893,
+      "width": 1800,
+      "height": 1340
+    }
+  },
+  {
+    "name": "z(1.5,hp:-73,vp:50)",
+    "input": [
+      {
+        "zoom": {
+          "z": 1.5,
+          "hp": -73,
+          "vp": 50
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": -1,
+      "leftOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "topOffsetPost": 274,
+      "leftOffsetPost": 227,
+      "widthPost": 1200,
+      "heightPost": 893,
+      "width": 1800,
+      "height": 1340
+    }
+  },
+  {
+    "name": "tr:rs(800,400),extr(400,200,x:10),z(2,hp:-200,vp:100)",
+    "input": [
+      {
+        "resize": {
+          "w": 800,
+          "h": 400
+        },
+        "extract": {
+          "w": 400,
+          "h": 200,
+          "x": 10
+        },
+        "zoom": {
+          "z": 2,
+          "vp": 100,
+          "hp": -200
+        }
+      }
+    ],
+    "expected": {
+      "topOffsetPre": -1,
+      "leftOffsetPre": -1,
+      "widthPre": -1,
+      "heightPre": -1,
+      "topOffsetPost": 400,
+      "leftOffsetPost": 20,
+      "widthPost": 400,
+      "heightPost": 200,
+      "width": 1600,
+      "height": 800
+    }
+  },
+  {
+    "name": "tr:rs(800,400),extr(400,200,x:10),z(2,hp:-200,vp:101)",
+    "input": [
+      {
+        "resize": {
+          "w": 800,
+          "h": 400
+        },
+        "extract": {
+          "w": 400,
+          "h": 200,
+          "x": 10
+        },
+        "zoom": {
+          "z": 2,
+          "vp": 101,
+          "hp": -200
+        }
+      }
+    ],
+    "expected": {
+      "error": "zoom: vertical padding out of boundary"
+    }
   }
 ]

@@ -29,9 +29,16 @@ function handlePreResized(ctx: ImageState, data: ZoomType) {
     const scaledHeight = Math.round(pH * zoom);
     const left = Math.round((scaledWidth - pW) / 2);
     const top = Math.round((scaledHeight - pH) / 2);
+
+    const hpPx = hp ?? 0;
+    const vpPx = vp ?? 0;
+
+    if (Math.abs(hpPx) > left) throw new Error("zoom: horizontal padding out of boundary");
+    if (Math.abs(vpPx) > top) throw new Error("zoom: vertical padding out of boundary");
+
     ctx.updateState("resize", { width: scaledWidth, height: scaledHeight, fit: "fill" });
     ctx.updateState("extract", {
-        left: left, top: top, width: pW, height: pH,
+        left: left + hpPx, top: top + vpPx, width: pW, height: pH,
     });
     ctx.state.isZoomed = true;
 };
@@ -49,20 +56,23 @@ function handlePostResized(ctx: ImageState, data: ZoomType) {
     const hpPx = hp ?? 0;
     const vpPx = vp ?? 0;
 
-    const maxHorionalOffset = pLeft !== -1 ? scaledWidth - (rawLeft + postW) : rawLeft;
-    const maxVerticalOffset = pTop !== -1 ? scaledHeight - (rawTop + postH) : rawTop;
+    // const maxHorionalOffset = pLeft !== -1 ? scaledWidth - (rawLeft + postW) : rawLeft;
+    // const maxVerticalOffset = pTop !== -1 ? scaledHeight - (rawTop + postH) : rawTop;
+    const absMaxHPWithinBox = Math.round(((postW * zoom) - postW) / 2);
+    const absMaxVPWithinBox = Math.round(((postH * zoom) - postH) / 2);
 
-    if (Math.abs(hpPx) > rawLeft) throw new Error("zoom: horizontal padding out of boundary");
-    if (Math.abs(vpPx) > rawTop) throw new Error("zoom: vertical padding out of boundary");
+    if (Math.abs(hpPx) > absMaxHPWithinBox) throw new Error("zoom: horizontal padding out of boundary");
+    if (Math.abs(vpPx) > absMaxVPWithinBox) throw new Error("zoom: vertical padding out of boundary");
 
     ctx.updateState("resize", { width: scaledWidth, height: scaledHeight });
     ctx.updateState("extract", {
-        left: rawLeft, top: rawTop, width: postW, height: postH,
+        left: rawLeft + hpPx, top: rawTop + vpPx, width: postW, height: postH,
     });
     ctx.state.isZoomed = true;
 };
 
 function handleResized(ctx: ImageState, data: ZoomType) {
+    console.log("RESIZED");
     const { z: zoom, vp, hp } = data;
     if (!zoom) throw new Error("zoom value undefined");
 
@@ -102,9 +112,16 @@ function handleOriginal(ctx: ImageState, data: ZoomType) {
     const scaledHeight = Math.round(origH * zoom);
     const left = Math.round((scaledWidth - origW) / 2);
     const top = Math.round((scaledHeight - origH) / 2);
+
+    const hpPx = hp ?? 0;
+    const vpPx = vp ?? 0;
+
+    if (Math.abs(hpPx) > left) throw new Error("zoom: horizontal padding out of boundary");
+    if (Math.abs(vpPx) > top) throw new Error("zoom: vertical padding out of boundary");
+
     ctx.updateState("resize", { width: scaledWidth, height: scaledHeight });
     ctx.updateState("extract", {
-        left: left, top: top, width: origW, height: origH,
+        left: left + hpPx, top: top + vpPx, width: origW, height: origH,
     });
     ctx.state.isZoomed = true;
 };

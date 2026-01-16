@@ -53,6 +53,12 @@ describe("zoom", () => {
                     quality: 80,
                 };
 
+                if ("error" in expected) {
+                    const resolver = new TransformationResolver(defaultSettings);
+                    expect(async () => await getFinalSharpInstance(buf, input[0], resolver)).toThrow(expected.error);
+                    return;
+                };
+
                 const resolver = new TransformationResolver(defaultSettings);
                 let sharpInst = sharp();
                 for (const chain of input) {

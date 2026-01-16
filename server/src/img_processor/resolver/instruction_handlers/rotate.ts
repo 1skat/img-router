@@ -26,10 +26,6 @@ export function resolveRotate(ctx: ImageState, data: RotateType) {
         ctx.state.postTopOffset = topOffset;
         ctx.state.postWidth = rotatedPostWidth;
         ctx.state.postHeight = rotatedPostHeight;
-        console.log('postLeftOffset:', leftOffset);
-        console.log('postTopOffset:', topOffset);
-        console.log('postWidth:', rotatedPostWidth);
-        console.log('postHeight:', rotatedPostHeight);
     };
 
     ctx.updateState("rotate", { degrees: degrees, background: bg });
