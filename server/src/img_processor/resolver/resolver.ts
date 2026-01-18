@@ -24,7 +24,7 @@ export function buildTransfromInstance(chain: any) {
     return (instance: any) => {
         let c = 1;
         for (const { method, content } of chain) {
-            console.log(`#${c++} ${method} ${JSON.stringify(content)}`);
+            // console.log(`#${c++} ${method} ${JSON.stringify(content)}`);
             if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
             instance = instance[method](...(content));
         }
@@ -76,7 +76,7 @@ export async function resolveSharpInstructionsV2(buf: Buffer, funcChains: any[],
         for (const chain of funcChains) {
             const inst = await getFinalSharpInstance(currBuf, chain, resolver);
             currBuf = await inst.toBuffer();
-            if (i++ === funcChains.length - 1) console.log("entries", Object.fromEntries(Object.entries(inst.options).slice(0, 18)));
+            // if (i++ === funcChains.length - 1) console.log("entries", Object.fromEntries(Object.entries(inst.options).slice(0, 18)));
         };
 
         return currBuf;
@@ -104,13 +104,12 @@ export class TransformationResolver {
     };
 
     resolveChain(img: ImageState, chain: typeof SharpInsructionMap) {
-        console.log("resolver chain", chain, typeof chain);
         for (const [method, content] of Object.entries(chain)) {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
             if (handler) handler(img, content);
         };
 
-        console.log("final state", img.state);
+        // console.log("final state", img.state);
         return compile(img, this.settings);
     };
 

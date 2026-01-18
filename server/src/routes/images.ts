@@ -55,7 +55,7 @@ export const imageRoutes = new Elysia()
             return { error: paramErr.message }
         };
 
-        const buf = fs.readFileSync(path.join(__dirname, "./audi_main.png"));
+        const buf = fs.readFileSync(path.join(__dirname, assetPath));
         // const buf = await imgStream.transformToByteArray();
 
         let sharpInstance = sharp(buf);
@@ -63,6 +63,7 @@ export const imageRoutes = new Elysia()
 
         // Client hints:
         const userDeviceSupportedFormats = headers["accept"] ?? "";
+        console.log("headers", headers);
 
         // Account settings
         const [accSettings, accSettingsErr] = await tryCatchAsync(() => getAccountSettings(accountId))

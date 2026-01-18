@@ -6,6 +6,10 @@ import { imageRoutes } from './routes/images';
 
 await connectRedis();
 const imageApp = new Elysia()
+    .onRequest(({ set }) => {
+        set.headers['Accept-CH'] = 'Sec-CH-DPR, Sec-CH-Width, Sec-CH-Viewport-Width';
+        console.log("ran");
+    })
     .use(imageRoutes)
 
 const apiApp = new Elysia()

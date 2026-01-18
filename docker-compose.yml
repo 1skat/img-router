@@ -6,7 +6,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      # - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ${SSL_CERT_PATH}:/etc/nginx/certs/fullchain.pem:ro
       - ${SSL_KEY_PATH}:/etc/nginx/certs/key.pem:ro
       - ${NGINX_CONF}:/etc/nginx/nginx.conf:ro

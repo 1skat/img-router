@@ -7,3 +7,7 @@ ImageComponent:
 - consider layout and CSS (google analytics)
 - write sizes 
 - choose breakpoints for srcset (considering DPR values)
+
+Notes:
+* srcset: 
+    - srcset + dpr

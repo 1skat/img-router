@@ -1,14 +1,29 @@
 vcl 4.1;
 
-backend default {
+backend images {
     .host = "imgstream-elysia1";
     .port = "3001";
 }
+ 
+backend api {
+    .host = "imgstream-elysia1";
+    .port = "3002";
+}
 
 sub vcl_recv { 
+    # Route API requests
+    if (req.url ~ "^/api/"){
+        set req.backend_hint = api;
+        return (pass);
+    }
+    # Route images requests
     if (req.url ~ "\.(png|jpe?g|webp|avif)$") {
-        unset req.http.Cookie; # why do i need to remove cookies from the header
-        # is this what i can do in production?
+        set req.backend_hint = images;
+        unset req.http.Cookie; 
+    }
+    # Route unsupported
+    else {
+        return (synth(404, "Not found"));
     }
     
     if (req.method != "GET" && req.method != "HEAD"){
