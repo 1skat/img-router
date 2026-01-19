@@ -3,11 +3,13 @@ import { generateAccountId, generateApiKey } from "@/internal/auth/auth";
 import { tryCatchAsync } from "@/utils/try-catch";
 import { RedisClient } from "bun";
 
-const rdClient = new RedisClient("redis://localhost:6379");
+const REDIS_URL = process.env.REDIS_URL || "redis://imgstream-redis:6379";
+const rdClient = new RedisClient(REDIS_URL);
 
 export async function connectRedis() {
     try {
         await rdClient.connect();
+        console.log("Conneced to redis");
     } catch (err) {
         console.error("Failed to connect to redis", err);
         process.exit(1);

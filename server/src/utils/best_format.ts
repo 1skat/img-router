@@ -1,4 +1,4 @@
-import type sharp from "sharp";
+import sharp from "sharp";
 
 const WEBP = "webp";
 const AVIF = "avif";
@@ -7,8 +7,10 @@ const JPEG = "jpeg";
 const GIF = "gif";
 const SVG = "svg";
 
-export function getBestFormat(supported: string, meta: sharp.Metadata) {
+export async function getBestFormat(supported: string, buf: Buffer) {
+    const meta = await sharp(buf).metadata();
     if (!supported || !meta) return;
+
     const accepts = supported.toLowerCase();
 
     if (meta.format === "svg") {

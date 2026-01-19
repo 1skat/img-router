@@ -41,6 +41,11 @@ services:
     networks:
       - imgstream-network
     restart: unless-stopped
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: >
+      sh -c "bun run --watch src/index.ts"
 
   redis:
     image: redis:7

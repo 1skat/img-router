@@ -5,8 +5,8 @@ const reqBody = t.Object({
     name: t.Optional(t.String())
 })
 
-export const keyRoutes = new Elysia({ prefix: "/keys" })
-    .post("/",
+export const keyRoutes = new Elysia()
+    .post("/keys",
         async ({ body, set }) => {
             const res = await createApiKey(body.name);
             set.status = 201;

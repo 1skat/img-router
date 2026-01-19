@@ -11,6 +11,8 @@ import { resolveSharpInstructions, resolveSharpInstructionsV2 } from "@/img_proc
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/url_parser";
 import { getBestFormat } from "@/utils/best_format";
+import { getCallSites } from "util";
+import { getClientHints } from "@/utils/get_client_hints";
 
 const s3 = new S3Client({
     region: Bun.env.S3_REGION,
@@ -58,12 +60,8 @@ export const imageRoutes = new Elysia()
         const buf = fs.readFileSync(path.join(__dirname, assetPath));
         // const buf = await imgStream.transformToByteArray();
 
-        let sharpInstance = sharp(buf);
-        const imgMetadata = await sharpInstance.metadata();
-
-        // Client hints:
-        const userDeviceSupportedFormats = headers["accept"] ?? "";
-        console.log("headers", headers);
+        // let sharpInstance = sharp(buf);
+        // const imgMetadata = await sharpInstance.metadata();
 
         // Account settings
         const [accSettings, accSettingsErr] = await tryCatchAsync(() => getAccountSettings(accountId))
@@ -72,8 +70,11 @@ export const imageRoutes = new Elysia()
             return { error: accSettingsErr.message };
         };
 
+        const clientHints = getClientHints(headers);
+        console.log("HINTS", clientHints);
+
         const settings = {
-            format: accSettings.useBestFormat ? getBestFormat(userDeviceSupportedFormats, imgMetadata) : undefined,
+            format: accSettings.useBestFormat ? getBestFormat("", buf) : undefined,
             quality: accSettings.defaultQuality,
         };
 
