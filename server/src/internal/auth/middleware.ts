@@ -7,10 +7,10 @@ export const withAuth = (app: Elysia) =>
         const apiKey = headers["x-api-key"];
         if (!apiKey) {
             set.status = 401;
-            throw new Error("missing X-API-KEY header")
+            throw new Error("Missing x-api-key header")
         };
 
-        const [_, err] = await tryCatchAsync(verifyApiKey(apiKey));
+        const [_, err] = await tryCatchAsync(() => verifyApiKey(apiKey));
         if (err) {
             set.status = 401;
             throw new Error("invalid api key")

@@ -7,7 +7,6 @@ import Elysia, { t } from "elysia";
 export const accountRoutes = new Elysia({ prefix: "/accounts" })
     .use(withAuth)
     .post("/", async ({ apiKey, set }) => {
-        console.log(apiKey);
         const [accountId, err] = await tryCatchAsync(createAccount(apiKey));
 
         if (err) {

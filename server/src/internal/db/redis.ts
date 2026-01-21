@@ -1,10 +1,13 @@
 import { AccountSettingsSchema, RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "@/internal/db/schema";
 import { generateAccountId, generateApiKey } from "@/internal/auth/auth";
 import { tryCatchAsync } from "@/utils/try-catch";
-import { RedisClient } from "bun";
+import { cfg, type ApiConfig } from "@/configs/api_config";
 
-const REDIS_URL = process.env.REDIS_URL || "redis://imgstream-redis:6379";
-const rdClient = new RedisClient(REDIS_URL);
+// const REDIS_URL = process.env.REDIS_URL || "redis://imgstream-redis:6379";
+// export const rdClient = new RedisClient(REDIS_URL);
+
+// to-do pass it as an arg in functions below
+const rdClient = cfg.db;
 
 export async function connectRedis() {
     try {
@@ -16,12 +19,12 @@ export async function connectRedis() {
     }
 };
 
-export async function createApiKey(name?: string) {
+export async function createApiKey(name: string) {
     const apiKey = generateApiKey();
     const accountId = generateAccountId();
 
     await rdClient.hset(`apiKey:${apiKey}`, {
-        name: name ?? "anon",
+        name: name,
         createdAt: new Date().toISOString(),
         accountIds: JSON.stringify([accountId]),
     });
@@ -41,7 +44,7 @@ export async function verifyApiKey(apiKey: string) {
     return { name: name, accountIds: JSON.parse(accountIds) };
 };
 
-export async function createAccount(apiKey: string) {
+export async function createAccount(cfg: ApiConfig, apiKey: string) {
     const [data, dataErr] = await tryCatchAsync(verifyApiKey(apiKey));
     if (dataErr) throw new Error(`create account: ${dataErr.message}`);
 
