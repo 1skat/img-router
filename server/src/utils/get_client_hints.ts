@@ -1,4 +1,14 @@
-export function getClientHints(header: Record<string, string | undefined>) {
+export type ClientHints = {
+    userDeviceSupportedFormats?: string;
+    width?: number;
+    dpr?: number;
+    viewPortWidth?: number;
+    ect?: string;
+    rtt?: string;
+    downlink?: string;
+};
+
+export function getClientHints(header: Record<string, string | undefined>): ClientHints {
     return {
         userDeviceSupportedFormats: header["accept"],
         width: header["sec-ch-width"] ? parseInt(header["sec-ch-width"], 10) : undefined,

@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import type { ClientHints } from "./get_client_hints";
 
 const WEBP = "webp";
 const AVIF = "avif";
@@ -7,7 +8,7 @@ const JPEG = "jpeg";
 const GIF = "gif";
 const SVG = "svg";
 
-export async function getBestFormat(supported: string, buf: Buffer) {
+export async function getBestFormat(supported: string | undefined, buf: Buffer) {
     const meta = await sharp(buf).metadata();
     if (!supported || !meta) return;
 

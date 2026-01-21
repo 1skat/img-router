@@ -1,3 +1,7 @@
-1. Clean up the code base
-2. Client hints and caching
-3. rabbitMQ
+0. Implement eTag and If-None-Match? 
+
+# todo
+- implement CDN caching correctly respectig HEADERS (vary)
+- clean up and tighten the code base
+- try to test cache hits on aws (cloud front)
+- 
