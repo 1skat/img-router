@@ -1,17 +1,17 @@
 import { AccountSettingsSchema, RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "@/internal/db/schema";
 import { generateAccountId, generateApiKey } from "@/internal/auth/auth";
 import { tryCatchAsync } from "@/utils/try-catch";
+import { BadRequestError, UserForbiddenError } from "@/errors";
 import { cfg, type ApiConfig } from "@/configs/api_config";
 
 // const REDIS_URL = process.env.REDIS_URL || "redis://imgstream-redis:6379";
 // export const rdClient = new RedisClient(REDIS_URL);
 
 // to-do pass it as an arg in functions below
-const rdClient = cfg.db;
 
 export async function connectRedis() {
     try {
-        await rdClient.connect();
+        await cfg.db.connect();
         console.log("Conneced to redis");
     } catch (err) {
         console.error("Failed to connect to redis", err);
@@ -19,47 +19,33 @@ export async function connectRedis() {
     }
 };
 
-export async function createApiKey(name: string) {
+export async function createApiKey(cfg: ApiConfig, name: string) {
     const apiKey = generateApiKey();
     const accountId = generateAccountId();
 
-    await rdClient.hset(`apiKey:${apiKey}`, {
-        name: name,
+    const ok = await cfg.db.set(`accountName:${name}`, accountId, "NX");
+    if (!ok) {
+        throw new BadRequestError("Account name already taken");
+    }
+
+    await cfg.db.hset(`apiKey:${apiKey}`, {
         createdAt: new Date().toISOString(),
-        accountIds: JSON.stringify([accountId]),
     });
+    // await cfg.db.hsetnx(
+    //     `apiKey:${apiKey}`,
+    //     "createdAt",
+    //     new Date().toISOString()
+    // );
+
+    await cfg.db.sadd(`apiKey:${apiKey}:accounts`, accountId);
 
     const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
 
-    await rdClient.hset(`account:${accountId}:settings`, defaultSettings);
+    await cfg.db.hset(`account:${accountId}:settings`, defaultSettings);
 
-    return { apiKey, accountId };
+    return { apiKey, accountId, name };
 };
 
-export async function verifyApiKey(apiKey: string) {
-    const data = await rdClient.hgetall(`apiKey:${apiKey}`);
-    const { name, accountIds } = data;
-    if (!name || !accountIds) throw new Error("invalid api key");
-
-    return { name: name, accountIds: JSON.parse(accountIds) };
-};
-
-export async function createAccount(cfg: ApiConfig, apiKey: string) {
-    const [data, dataErr] = await tryCatchAsync(verifyApiKey(apiKey));
-    if (dataErr) throw new Error(`create account: ${dataErr.message}`);
-
-    const newAccountId = generateAccountId();
-    data.accountIds.push(newAccountId);
-
-    await rdClient.hset(`apikey:${apiKey}`, {
-        accountIds: JSON.stringify(data.accountIds),
-    });
-
-    const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
-    await rdClient.hset(`account:${newAccountId}:settings`, defaultSettings);
-
-    return newAccountId;
-};
 
 export async function proveOwnership(apiKey: string, accountId: string): Promise<boolean> {
     const { accountIds } = await verifyApiKey(apiKey);

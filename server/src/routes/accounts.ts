@@ -1,8 +1,11 @@
+import type { ApiConfig } from "@/configs/api_config";
 import { requireOwnership, withAuth } from "@/internal/auth/middleware";
 import { createAccount, getAccountSettings, updateAccountSettings } from "@/internal/db/redis";
 import { AccountSettingsSchema } from "@/internal/db/schema";
+import { respondWithJSON } from "@/utils/json";
 import { tryCatchAsync } from "@/utils/try-catch";
 import Elysia, { t } from "elysia";
+
 
 export const accountRoutes = new Elysia({ prefix: "/accounts" })
     .use(withAuth)

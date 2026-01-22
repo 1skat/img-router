@@ -1,5 +1,7 @@
 # Auth
 - rete limit creatingApiKeys
+- build error middleware with error codes
+- account name collison (creating api keys)
 
 # CDN
 -  Implement eTag and If-None-Match? 

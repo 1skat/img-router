@@ -1,46 +1,31 @@
-import { Elysia } from 'elysia';
-import { connectRedis } from './internal/db/redis';
-import { keyRoutes } from './routes/api_keys';
-import { accountRoutes } from './routes/accounts';
-import { imageRoutes } from './routes/images';
-import { hostname } from 'os';
+import { serve } from "bun";
+import { hostname } from "os";
+import { handlerKeys } from "./routes/api_keysV2";
+import { connectRedis } from "./internal/db/redis";
+import { handlerServerError, requireOwnership, withAuth, withConfig } from "./middleware";
+import { cfg } from "./configs/api_config";
+import { handlerCreateAccount, handlerGetAccountSettings } from "./routes/accountsV2";
 
 await connectRedis();
-const imageApp = new Elysia()
-    .onRequest(({ set }) => {
-        set.headers['Accept-CH'] = [
-            'Sec-CH-DPR',
-            'Sec-CH-Width',
-            'Sec-CH-Viewport-Width',
-            'Save-Data',
-            'ECT',
-            'RTT',
-            'Downlink'
-        ].join(', ');
-        set.headers['Vary'] = [
-            'Sec-CH-DPR',
-            'Sec-CH-Width',
-            'Sec-CH-Viewport-Width',
-            'Save-Data',
-            'ECT',
-            'RTT',
-            'Downlink'
-        ].join(', ');
-    })
-    .use(imageRoutes)
+console.log("redis started");
+console.log("cfg:", Object.keys(cfg).filter(key => cfg[key] !== null));
 
-const apiApp = new Elysia({ prefix: "/api" })
-    .use(keyRoutes)
-    .use(accountRoutes)
-
-imageApp.listen({
+serve({
     hostname: "0.0.0.0",
-    port: 3001
+    port: cfg.port,
+    routes: {
+        "/api/keys": {
+            POST: withConfig(cfg, handlerKeys),
+        },
+        "/api/accounts": {
+            POST: withConfig(cfg, withAuth(handlerCreateAccount))
+        },
+        "/api/accounts/:name/settings": {
+            GET: withConfig(cfg, withAuth(requireOwnership(handlerGetAccountSettings)))
+        }
+    },
+    error(err) {
+        return handlerServerError(cfg, err)
+    },
 });
-
-apiApp.listen({
-    hostname: "0.0.0.0",
-    port: 3002
-});
-
-console.log("server is running on port 3001");
+console.log("bun server on port 3002");
