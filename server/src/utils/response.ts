@@ -5,3 +5,8 @@ export function respondWithJSON(status: number, payload: any) {
         headers: { "Content-Type": "application/json" },
     });
 }
+
+export function respondWithImage(payload: ArrayBuffer, imgType: string) {
+
+};
+

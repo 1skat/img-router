@@ -1,9 +1,8 @@
 import type { BunRequest } from "bun";
-import type { ApiConfig } from "./configs/api_config";
+import type { ApiConfig } from "./config";
 import { BadRequestError, NotFoundError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
 import { tryCatchAsync } from "./utils/try-catch";
-import { proveOwnership, verifyApiKey } from "./internal/db/redis";
-import { respondWithJSON } from "./utils/json";
+import { respondWithJSON } from "./utils/response";
 
 type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
 
@@ -53,16 +52,16 @@ export function requireOwnership(
 
         const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
         if (!ok) {
-            throw new UserForbiddenError("Forbidden")
+            throw new UserForbiddenError("Forbidden");
         }
 
         (req as AuthenticatedRequest).accountId = accountId;
 
         return await next(cfg, req);
-    }
+    };
 };
 
-export function handlerServerError(cfg: ApiConfig, err: unknown) {
+export function handlerServerError(err: unknown) {
     let statusCode = 500;
     let message = "Something went wrong on our end";
 
@@ -83,7 +82,7 @@ export function handlerServerError(cfg: ApiConfig, err: unknown) {
         message = err.message;
     }
     if (statusCode >= 500) {
-        const message = ((err: unknown) => {
+        message = ((err: unknown) => {
             if (typeof err === "string") return err;
             if (err instanceof Error) return err.message;
             return "Unknown message occured";

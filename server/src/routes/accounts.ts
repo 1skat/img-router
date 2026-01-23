@@ -1,8 +1,8 @@
-import type { ApiConfig } from "@/configs/api_config";
+import type { ApiConfig } from "@/config";
 import { requireOwnership, withAuth } from "@/internal/auth/middleware";
 import { createAccount, getAccountSettings, updateAccountSettings } from "@/internal/db/redis";
 import { AccountSettingsSchema } from "@/internal/db/schema";
-import { respondWithJSON } from "@/utils/json";
+import { respondWithJSON } from "@/utils/response";
 import { tryCatchAsync } from "@/utils/try-catch";
 import Elysia, { t } from "elysia";
 
@@ -32,7 +32,7 @@ export const accountRoutes = new Elysia({ prefix: "/accounts" })
             return settings;
         })
         .post("/settings", async ({ params, body, set }) => {
-            const [_, err] = await tryCatchAsync(updateAccountSettings(params.id, body))
+            const [_, err] = await tryCatchAsync(updateAccountSettings(params.id, body));
             if (err) {
                 set.status = 404;
                 return { error: `update settings: ${err.message}` };

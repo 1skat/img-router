@@ -1,31 +1,53 @@
 import { serve } from "bun";
 import { hostname } from "os";
-import { handlerKeys } from "./routes/api_keysV2";
-import { connectRedis } from "./internal/db/redis";
 import { handlerServerError, requireOwnership, withAuth, withConfig } from "./middleware";
-import { cfg } from "./configs/api_config";
-import { handlerCreateAccount, handlerGetAccountSettings } from "./routes/accountsV2";
+import { cfg } from "./config";
+import { handlerCreateAccount, handlerGetAccountSettings, handlerKeys, handlerUpdateAccountSettings } from "./routes/accountsV2";
+import { handlerImage } from "./routes/img";
 
-await connectRedis();
-console.log("redis started");
-console.log("cfg:", Object.keys(cfg).filter(key => cfg[key] !== null));
+try {
+    await cfg.db.connect();
+    console.log("Redis connected successfully");
+} catch (err) {
+    console.error("Failed to connect to Redis:", err);
+    process.exit(1);
+}
 
-serve({
-    hostname: "0.0.0.0",
-    port: cfg.port,
-    routes: {
-        "/api/keys": {
-            POST: withConfig(cfg, handlerKeys),
+async function startSevers() {
+    serve({
+        hostname: "0.0.0.0",
+        port: cfg.apiPort,
+        routes: {
+            "/api/keys": {
+                POST: withConfig(cfg, handlerKeys),
+            },
+            "/api/accounts": {
+                POST: withConfig(cfg, withAuth(handlerCreateAccount)),
+            },
+            "/api/accounts/:name/settings": {
+                GET: withConfig(cfg, withAuth(requireOwnership(handlerGetAccountSettings))),
+                POST: withConfig(cfg, withAuth(requireOwnership(handlerUpdateAccountSettings)))
+            },
         },
-        "/api/accounts": {
-            POST: withConfig(cfg, withAuth(handlerCreateAccount))
+        error(err) {
+            return handlerServerError(err);
         },
-        "/api/accounts/:name/settings": {
-            GET: withConfig(cfg, withAuth(requireOwnership(handlerGetAccountSettings)))
-        }
-    },
-    error(err) {
-        return handlerServerError(cfg, err)
-    },
-});
-console.log("bun server on port 3002");
+    });
+    console.log("bun server on port 3002");
+
+    serve({
+        hostname: "0.0.0.0",
+        port: cfg.imgPort,
+        routes: {
+            "/*": {
+                GET: withConfig(cfg, handlerImage)
+            },
+        },
+        error(err) {
+            console.error(err.message);
+            return handlerServerError(err);
+        },
+    });
+    console.log("bun server on port 3001");
+};
+startSevers();
