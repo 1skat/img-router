@@ -1,8 +1,11 @@
 import type { BunRequest } from "bun";
-import type { ApiConfig } from "./config";
-import { BadRequestError, NotFoundError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
+import { cfg, type ApiConfig } from "./config";
 import { tryCatchAsync } from "./utils/try-catch";
 import { respondWithJSON } from "./utils/response";
+import { checkOwnership } from "./internal/db/redis";
+import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
+import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
+
 
 type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
 
@@ -14,6 +17,21 @@ export interface AuthenticatedRequest extends Request {
 export function withConfig(cfg: ApiConfig, handler: HandlerWithConfig) {
     return (req: BunRequest) => handler(cfg, req);
 };
+
+export const withAuthV2 = (app: ApiAppWithConfig) =>
+    app.derive(async ({ headers, set }) => {
+        const apiKey = headers["x-api-key"];
+        if (!apiKey) {
+            throw new UserNotAuthenticatedError("Missing x-api-key header");
+        };
+
+        const exists = await cfg.db.exists(`apiKey:${apiKey}`);
+        if (!exists) {
+            throw new UserForbiddenError("Forbidden");
+        };
+
+        return { apiKey };
+    });
 
 export function withAuth(
     next: HandlerWithConfig,
@@ -35,16 +53,21 @@ export function withAuth(
     };
 };
 
+function getPathSegments(req: Request): string[] {
+    return new URL(req.url).pathname.split("/").filter(Boolean);
+};
+
 export function requireOwnership(
     next: HandlerWithConfig
 ): HandlerWithConfig {
     return async function (cfg: ApiConfig, req: Request): Promise<Response> {
         const apiKey = (req as AuthenticatedRequest).apiKey;
         const accountName = new URL(req.url).pathname.split("/").filter(Boolean)[2];
-        if (!accountName || !/^[a-z0-9-]+$/i.test(accountName)) {
-            throw new BadRequestError("Invalid account name");
-        };
+        // if (!accountName || !/^[a-z0-9-]+$/i.test(accountName)) {
+        //     throw new BadRequestError("Invalid account name");
+        // };
 
+        // await checkOwnership(cfg, apiKey, accountName);
         const accountId = await cfg.db.get(`accountName:${accountName}`);
         if (!accountId) {
             throw new NotFoundError("Account name not found");
@@ -61,34 +84,71 @@ export function requireOwnership(
     };
 };
 
-export function handlerServerError(err: unknown) {
-    let statusCode = 500;
-    let message = "Something went wrong on our end";
+// export function handlerServerError(err: unknown) {
+//     let statusCode = 500;
+//     let message = "Something went wrong on our end";
 
-    if (err instanceof BadRequestError) {
-        statusCode = 400;
-        message = err.message;
-    }
-    else if (err instanceof UserNotAuthenticatedError) {
-        statusCode = 401;
-        message = err.message;
-    }
-    else if (err instanceof UserForbiddenError) {
-        statusCode = 403;
-        message = err.message;
-    }
-    else if (err instanceof NotFoundError) {
-        statusCode = 404;
-        message = err.message;
-    }
-    if (statusCode >= 500) {
-        message = ((err: unknown) => {
-            if (typeof err === "string") return err;
-            if (err instanceof Error) return err.message;
-            return "Unknown message occured";
-        })(err);
+//     if (err instanceof BadRequestError) {
+//         statusCode = 400;
+//         message = err.message;
+//     }
+//     else if (err instanceof UserNotAuthenticatedError) {
+//         statusCode = 401;
+//         message = err.message;
+//     }
+//     else if (err instanceof UserForbiddenError) {
+//         statusCode = 403;
+//         message = err.message;
+//     }
+//     else if (err instanceof NotFoundError) {
+//         statusCode = 404;
+//         message = err.message;
+//     }
+//     if (statusCode >= 500) {
+//         message = ((err: unknown) => {
+//             if (typeof err === "string") return err;
+//             if (err instanceof Error) return err.message;
+//             return "Unknown message occured";
+//         })(err);
+//     };
+
+//     return respondWithJSON(statusCode, message);
+// };
+
+type SingletonWithCfg = {
+    decorator: {
+        cfg: ApiConfig;
     };
-
-    return respondWithJSON(statusCode, message);
+    store: Record<string, any>
+    derive: Record<string, any>
+    resolve: Record<string, any>
 };
 
+export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ error, set }) => {
+    let message = "Something went wrong on our end";
+
+    if (error instanceof BadRequestError) {
+        set.status = 400;
+        message = error.message;
+    } else if (error instanceof UserNotAuthenticatedError) {
+        set.status = 401;
+        message = error.message;
+    } else if (error instanceof UserForbiddenError) {
+        set.status = 403;
+        message = error.message;
+    } else if (error instanceof NotFoundError) {
+        set.status = 404;
+        message = error.message;
+    } else {
+        set.status = 500;
+        if (error instanceof Error) message = error.message;
+        else if (typeof error === "string") message = error;
+    }
+
+    return { error: message };
+};
+
+export const withConfigV2 = new Elysia()
+    .decorate("cfg", cfg);
+
+export type ApiAppWithConfig = typeof withConfigV2;

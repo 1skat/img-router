@@ -8,7 +8,7 @@ const JPEG = "jpeg";
 const GIF = "gif";
 const SVG = "svg";
 
-export async function getBestFormat(supported: string | undefined, buf: Buffer) {
+export async function getBestFormat(supported: string | null, buf: Buffer) {
     const meta = await sharp(buf).metadata();
     if (!supported || !meta) return;
 

@@ -1,53 +1,48 @@
-import { serve } from "bun";
-import { hostname } from "os";
-import { handlerServerError, requireOwnership, withAuth, withConfig } from "./middleware";
-import { cfg } from "./config";
-import { handlerCreateAccount, handlerGetAccountSettings, handlerKeys, handlerUpdateAccountSettings } from "./routes/accountsV2";
-import { handlerImage } from "./routes/img";
+import { Elysia } from 'elysia';
+import { keyHandlers } from './routes/api_keys';
+import { accountRoutes } from './routes/accounts';
+import { imageRoutes } from './routes/images';
+import { hostname } from 'os';
+import { handlerServerErrorV2, withConfigV2, withConfig } from './middleware';
+import { cfg } from './config';
 
-try {
-    await cfg.db.connect();
-    console.log("Redis connected successfully");
-} catch (err) {
-    console.error("Failed to connect to Redis:", err);
-    process.exit(1);
-}
+const imageApp = new Elysia()
+    .onRequest(({ set }) => {
+        set.headers['Accept-CH'] = [
+            'Sec-CH-DPR',
+            'Sec-CH-Width',
+            'Sec-CH-Viewport-Width',
+            'Save-Data',
+            'ECT',
+            'RTT',
+            'Downlink'
+        ].join(', ');
+        set.headers['Vary'] = [
+            'Sec-CH-DPR',
+            'Sec-CH-Width',
+            'Sec-CH-Viewport-Width',
+            'Save-Data',
+            'ECT',
+            'RTT',
+            'Downlink'
+        ].join(', ');
+    })
+    .use(imageRoutes)
 
-async function startSevers() {
-    serve({
-        hostname: "0.0.0.0",
-        port: cfg.apiPort,
-        routes: {
-            "/api/keys": {
-                POST: withConfig(cfg, handlerKeys),
-            },
-            "/api/accounts": {
-                POST: withConfig(cfg, withAuth(handlerCreateAccount)),
-            },
-            "/api/accounts/:name/settings": {
-                GET: withConfig(cfg, withAuth(requireOwnership(handlerGetAccountSettings))),
-                POST: withConfig(cfg, withAuth(requireOwnership(handlerUpdateAccountSettings)))
-            },
-        },
-        error(err) {
-            return handlerServerError(err);
-        },
-    });
-    console.log("bun server on port 3002");
+const apiApp = new Elysia({ prefix: "/api" })
+    .use(withConfigV2)
+    .onError(handlerServerErrorV2)
+    .use(keyHandlers)
+    .use(accountHandlers)
 
-    serve({
-        hostname: "0.0.0.0",
-        port: cfg.imgPort,
-        routes: {
-            "/*": {
-                GET: withConfig(cfg, handlerImage)
-            },
-        },
-        error(err) {
-            console.error(err.message);
-            return handlerServerError(err);
-        },
-    });
-    console.log("bun server on port 3001");
-};
-startSevers();
+imageApp.listen({
+    hostname: "0.0.0.0",
+    port: 3001
+});
+
+apiApp.listen({
+    hostname: "0.0.0.0",
+    port: 3002
+});
+
+console.log("server is running on port 3001");

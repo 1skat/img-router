@@ -8,7 +8,7 @@ import type { ApiConfig } from "@/config";
 import { NotFoundError } from "elysia";
 import { AccountSettingsSchema, RedisAccountSettingsSchema, type RedisAccountSettings } from "./schema";
 import { generateAccountId, generateApiKey } from "../auth/auth";
-import { BadRequestError } from "@/errors";
+import { BadRequestError, UserForbiddenError } from "@/errors";
 import { tryCatchAsync } from "@/utils/try-catch";
 
 // const REDIS_URL = process.env.REDIS_URL || "redis://imgstream-redis:6379";
@@ -150,5 +150,17 @@ export async function createApiKey(cfg: ApiConfig, name: string) {
     await cfg.db.hset(`account:${accountId}:settings`, defaultSettings);
 
     return { apiKey, accountId, name };
+};
+
+export async function checkOwnership(cfg: ApiConfig, apiKey: string, accountName: string) {
+    const accountId = await cfg.db.get(`accountName:${accountName}`);
+    if (!accountId) {
+        throw new NotFoundError("Account name not found");
+    };
+
+    const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
+    if (!ok) {
+        throw new UserForbiddenError("Forbidden");
+    };
 };
 

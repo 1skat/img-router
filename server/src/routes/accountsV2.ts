@@ -3,9 +3,10 @@ import { BadRequestError, NotFoundError, UserForbiddenError } from "@/errors";
 import { generateAccountId } from "@/internal/auth/auth";
 import { createAccount, createApiKey, getAccountSettings, updateAccountSettings } from "@/internal/db/redis";
 import { AccountSettingsSchema, RedisAccountSettingsSchema, type RedisAccountSettings } from "@/internal/db/schema";
-import { withAuth, type AuthenticatedRequest } from "@/middleware";
+import { withAuth, withAuthV2, type ApiAppWithConfig, type AuthenticatedRequest } from "@/middleware";
 import { respondWithJSON } from "@/utils/response";
 import { tryCatchAsync } from "@/utils/try-catch";
+import Elysia from "elysia";
 
 export async function handlerCreateAccount(cfg: ApiConfig, req: Request) {
     const apiKey = (req as AuthenticatedRequest).apiKey;
@@ -98,3 +99,38 @@ export async function handlerKeys(cfg: ApiConfig, req: Request) {
     // await cfg.db.hset(`account:${accountId}:settings`, defaultSettings);
 
 };
+
+export const accountRoutes = (app: ApiAppWithConfig) =>
+    app.use(withAuthV2)
+        .post("/", async ({ apiKey, set }) => {
+            const [accountId, err] = await tryCatchAsync(createAccount(apiKey));
+
+            if (err) {
+                set.status = 401;
+                return { error: `failed to create account: ${err.message}` }
+            }
+            set.status = 201;
+            return { accountId };
+        })
+        // .group("/:id", (app) => app
+        //     .use(requireOwnership)
+        //     .get("/settings", async ({ params, set }) => {
+        //         const [settings, err] = await tryCatchAsync(getAccountSettings(params.id));
+        //         if (err) {
+        //             set.status = 404;
+        //             return { error: `failed to get settings: ${err.message}` }
+        //         }
+
+        //         set.status = 201;
+        //         return settings;
+        //     })
+        //     .post("/settings", async ({ params, body, set }) => {
+        //         const [_, err] = await tryCatchAsync(updateAccountSettings(params.id, body));
+        //         if (err) {
+        //             set.status = 404;
+        //             return { error: `update settings: ${err.message}` };
+        //         };
+
+        //         set.status = 201;
+        //     }, { body: AccountSettingsSchema })
+        );
