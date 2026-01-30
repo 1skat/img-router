@@ -7,51 +7,90 @@ import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
 import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
 
 
-type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
+// type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
 
-export interface AuthenticatedRequest extends Request {
-    apiKey?: string;
-    accountId?: string;
-};
+// export interface AuthenticatedRequest extends Request {
+//     apiKey?: string;
+//     accountId?: string;
+// };
 
-export function withConfig(cfg: ApiConfig, handler: HandlerWithConfig) {
-    return (req: BunRequest) => handler(cfg, req);
-};
+// export function withConfig(cfg: ApiConfig, handler: HandlerWithConfig) {
+//     return (req: BunRequest) => handler(cfg, req);
+// };
 
-export const withAuthV2 = (app: ApiAppWithConfig) =>
-    app.derive(async ({ headers, set }) => {
-        const apiKey = headers["x-api-key"];
-        if (!apiKey) {
-            throw new UserNotAuthenticatedError("Missing x-api-key header");
-        };
+// export const withAuthV2 = (app: ApiAppWithConfig) =>
+//     app.derive(async ({ cfg, headers, set }) => {
 
-        const exists = await cfg.db.exists(`apiKey:${apiKey}`);
-        if (!exists) {
-            throw new UserForbiddenError("Forbidden");
-        };
+//         const apiKey = headers["x-api-key"];
+//         if (!apiKey) {
+//             throw new UserNotAuthenticatedError("Missing x-api-key header");
+//         };
 
-        return { apiKey };
-    });
+//         const exists = await cfg.db.exists(`apiKey:${apiKey}`);
+//         if (!exists) {
+//             throw new UserForbiddenError("Forbidden");
+//         };
 
-export function withAuth(
-    next: HandlerWithConfig,
-): HandlerWithConfig {
-    return async function (cfg: ApiConfig, req: Request): Promise<Response> {
-        const apiKey = req.headers.get("X-API-KEY");
-        if (!apiKey) {
-            throw new UserNotAuthenticatedError("Missing X-API-KEY header");
-        };
+//         return { apiKey };
+//     });
 
-        const exists = await cfg.db.exists(`apiKey:${apiKey}`);
-        if (!exists) {
-            throw new UserForbiddenError("Forbidden");
-        };
-
-        (req as AuthenticatedRequest).apiKey = apiKey;
-
-        return await next(cfg, req);
+export const withAuth = async ({ cfg, headers }: {
+    cfg: ApiConfig,
+    headers: Record<string, string | undefined>,
+}) => {
+    const apiKey = headers["x-api-key"];
+    if (!apiKey) {
+        throw new UserNotAuthenticatedError("Missing x-api-key header");
     };
+
+    const exists = await cfg.db.exists(`apiKey:${apiKey}`);
+    if (!exists) {
+        throw new UserForbiddenError("Forbidden");
+    };
+
+    return { apiKey };
 };
+
+export const requireOwnershipV2 = async ({ cfg, apiKey, params }: {
+    cfg: ApiConfig,
+    apiKey: string,
+    params: { accountName: string },
+}) => {
+    // Account name exists globaly
+    const accountId = await cfg.db.get(`accountName:${params.accountName}`);
+    if (!accountId) {
+        throw new NotFoundError("Account name not found");
+    };
+
+    // Account name belongs the API key
+    const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
+    if (!ok) {
+        throw new UserForbiddenError("Forbidden");
+    }
+
+    return { accountId };
+};
+
+
+// export function withAuth(
+//     next: HandlerWithConfig,
+// ): HandlerWithConfig {
+//     return async function (cfg: ApiConfig, req: Request): Promise<Response> {
+//         const apiKey = req.headers.get("X-API-KEY");
+//         if (!apiKey) {
+//             throw new UserNotAuthenticatedError("Missing X-API-KEY header");
+//         };
+
+//         const exists = await cfg.db.exists(`apiKey:${apiKey}`);
+//         if (!exists) {
+//             throw new UserForbiddenError("Forbidden");
+//         };
+
+//         (req as AuthenticatedRequest).apiKey = apiKey;
+
+//         return await next(cfg, req);
+//     };
+// };
 
 function getPathSegments(req: Request): string[] {
     return new URL(req.url).pathname.split("/").filter(Boolean);
@@ -84,6 +123,9 @@ export function requireOwnership(
     };
 };
 
+// app.derive(async ({ cfg, apiKey }) => {
+
+//     });
 // export function handlerServerError(err: unknown) {
 //     let statusCode = 500;
 //     let message = "Something went wrong on our end";
@@ -124,7 +166,8 @@ type SingletonWithCfg = {
     resolve: Record<string, any>
 };
 
-export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ error, set }) => {
+export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ cfg, error, set }) => {
+    set.status = 500;
     let message = "Something went wrong on our end";
 
     if (error instanceof BadRequestError) {
@@ -139,8 +182,7 @@ export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ e
     } else if (error instanceof NotFoundError) {
         set.status = 404;
         message = error.message;
-    } else {
-        set.status = 500;
+    } else if (cfg.bunEnv !== "production") {
         if (error instanceof Error) message = error.message;
         else if (typeof error === "string") message = error;
     }

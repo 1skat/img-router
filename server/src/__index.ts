@@ -2,7 +2,7 @@ import { serve } from "bun";
 import { hostname } from "os";
 import { handlerServerError, requireOwnership, withAuth, withConfig } from "./middleware";
 import { cfg } from "./config";
-import { handlerCreateAccount, handlerGetAccountSettings, handlerKeys, handlerUpdateAccountSettings } from "./routes/accountsV2";
+import { handlerCreateAccount, handlerGetAccountSettings, handlerKeys, handlerUpdateAccountSettings } from "./routes/accounts";
 import { handlerImage } from "./routes/img";
 
 try {

@@ -11,6 +11,7 @@ export type ApiConfig = {
     bucketName: string;
     s3Endpoint: string;
     s3Region: string;
+    bunEnv: "production" | "development";
     // apiRL: Ratelimit,
 };
 
@@ -48,6 +49,7 @@ export const cfg: ApiConfig = {
     bucketName,
     s3Endpoint,
     s3Region,
+    bunEnv: "dev"
 };
 
 function envOrThrow(key: string) {

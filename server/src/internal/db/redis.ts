@@ -6,7 +6,7 @@
 
 import type { ApiConfig } from "@/config";
 import { NotFoundError } from "elysia";
-import { AccountSettingsSchema, RedisAccountSettingsSchema, type RedisAccountSettings } from "./schema";
+import { AccountSettingsSchema, RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "./schema";
 import { generateAccountId, generateApiKey } from "../auth/auth";
 import { BadRequestError, UserForbiddenError } from "@/errors";
 import { tryCatchAsync } from "@/utils/try-catch";
@@ -90,77 +90,56 @@ export async function getAccountSettings(cfg: ApiConfig, accountId: string) {
     if (!exists) {
         throw new NotFoundError("Account settings not found");
     };
-    const data = await cfg.db.hgetall(`account:${accountId}:settings`);
 
+    const data = await cfg.db.hgetall(`account:${accountId}:settings`);
     const parsed = AccountSettingsSchema.safeParse(data);
-    if (!parsed.success) throw new Error(`Received invalid settings`);
+    if (!parsed.success) throw new Error(`Invalid account settings`);
 
     return parsed.data;
 };
 
 export async function createAccount(cfg: ApiConfig, apiKey: string, accountName: string) {
-    const newAccountId = generateAccountId();
-
-    const ok = await cfg.db.set(`accountName:${accountName}`, newAccountId, "NX");
-    if (!ok) {
-        throw new BadRequestError("Account name already taken");
-    };
-
-    await cfg.db.sadd(`apiKey:${apiKey}:accounts`, newAccountId);
-
-    const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
-    await cfg.db.hset(`account:${newAccountId}:settings`, defaultSettings);
-
-    return { apiKey, newAccountId, accountName };
-};
-
-export async function updateAccountSettings(cfg: ApiConfig, accountId: string, settings: string) {
-    const exists = await cfg.db.exists(`account:${accountId}:settings`);
-    if (!exists) {
-        throw new NotFoundError("Account settings not found");
-    };
-
-    const parsedSettings = RedisAccountSettingsSchema.safeParse(settings);
-    if (!parsedSettings.success) {
-        throw new BadRequestError(`Invalid settings: ${JSON.stringify(settings)}`);
-    };
-
-    const newSettings = parsedSettings.data;
-    await cfg.db.hset(`account:${accountId}:settings`, newSettings);
-
-    return newSettings;
-};
-
-export async function createApiKey(cfg: ApiConfig, name: string) {
-    const apiKey = generateApiKey();
     const accountId = generateAccountId();
 
-    const ok = await cfg.db.set(`accountName:${name}`, accountId, "NX");
+    const ok = await cfg.db.set(`accountName:${accountName}`, accountId, "NX");
     if (!ok) {
         throw new BadRequestError("Account name already taken");
     };
-
-    await cfg.db.hset(`apiKey:${apiKey}`, {
-        createdAt: new Date().toISOString(),
-    });
 
     await cfg.db.sadd(`apiKey:${apiKey}:accounts`, accountId);
 
     const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
     await cfg.db.hset(`account:${accountId}:settings`, defaultSettings);
 
-    return { apiKey, accountId, name };
+    return { apiKey, accountId, accountName };
 };
 
-export async function checkOwnership(cfg: ApiConfig, apiKey: string, accountName: string) {
-    const accountId = await cfg.db.get(`accountName:${accountName}`);
-    if (!accountId) {
-        throw new NotFoundError("Account name not found");
-    };
+export async function updateAccountSettings(cfg: ApiConfig, accountId: string, settings: AccountSettings) {
+    const redisSettings = RedisAccountSettingsSchema.parse(settings);
+    await cfg.db.hset(`account:${accountId}:settings`, redisSettings);
 
-    const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
-    if (!ok) {
-        throw new UserForbiddenError("Forbidden");
-    };
+    return settings;
 };
+
+export async function createApiKey(cfg: ApiConfig, name: string) {
+    const apiKey = generateApiKey();
+
+    await cfg.db.hset(`apiKey:${apiKey}`, {
+        createdAt: new Date().toISOString(),
+    });
+
+    return await createAccount(cfg, apiKey, name);
+};
+
+// export async function checkOwnership(cfg: ApiConfig, apiKey: string, accountName: string) {
+//     const accountId = await cfg.db.get(`accountName:${accountName}`);
+//     if (!accountId) {
+//         throw new NotFoundError("Account name not found");
+//     };
+
+//     const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
+//     if (!ok) {
+//         throw new UserForbiddenError("Forbidden");
+//     };
+// };
 
