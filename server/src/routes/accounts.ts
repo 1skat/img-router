@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, UserForbiddenError } from "@/errors";
 import { generateAccountId } from "@/internal/auth/auth";
 import { createAccount, createApiKey, getAccountSettings, updateAccountSettings } from "@/internal/db/redis";
 import { AccountSettingsSchema, RedisAccountSettingsSchema, type RedisAccountSettings } from "@/internal/db/schema";
-import { requireOwnershipV2, withAuth, withAuthV2, type ApiAppWithConfig, type AuthenticatedRequest } from "@/middleware";
+import { requireOwnership, requireOwnershipV2, withAuth, withAuthV2, withConfig, type ApiAppWithConfig, type AuthenticatedRequest } from "@/middleware";
 import { respondWithJSON } from "@/utils/response";
 import { tryCatchAsync } from "@/utils/try-catch";
 import Elysia, { t } from "elysia";
@@ -101,30 +101,31 @@ export async function handlerKeys(cfg: ApiConfig, req: Request) {
 
 };
 
-export const accountHandlers = (app: ApiAppWithConfig) =>
-    app.derive(withAuth)
-        .post("/account", async ({ cfg, apiKey, set, body }) => {
-            const res = await createAccount(cfg, apiKey, body.name);
-            set.status = 201;
-            return res;
-        }, {
-            body: t.Object({
-                name: t.String({ pattern: "^[a-z0-9_-]{3,32}$" }),
-            })
+export const accountHandlers = new Elysia()
+    .use(withConfig)
+    .derive(withAuth)
+    .post("/account", async ({ cfg, apiKey, set, body }) => {
+        const res = await createAccount(cfg, apiKey, body.name);
+        set.status = 201;
+        return res;
+    }, {
+        body: t.Object({
+            name: t.String({ pattern: "^[a-z0-9_-]{3,32}$" }),
         })
-        .group("/:accountName", (app) => app
-            .derive(requireOwnershipV2)
-            .get("/settings", async ({ cfg, accountId }) => {
-                return await getAccountSettings(cfg, accountId);
-            })
-            .post("/settings", async ({ cfg, accountId, body }) => {
-                await updateAccountSettings(cfg, accountId, body.settings);
-            }, {
-                body: z.object({
-                    settings: AccountSettingsSchema
-                })
+    })
+    .group("account/:accountName", (app) => app
+        .derive(requireOwnership)
+        .get("/settings", async ({ cfg, accountId }) => {
+            return await getAccountSettings(cfg, accountId);
+        })
+        .post("/settings", async ({ cfg, accountId, body }) => {
+            return await updateAccountSettings(cfg, accountId, body.settings);
+        }, {
+            body: z.object({
+                settings: AccountSettingsSchema,
             }),
-        );
+        }),
+    );
 
 
 // .group("/:id", (app) => app

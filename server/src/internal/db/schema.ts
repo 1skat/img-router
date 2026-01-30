@@ -12,7 +12,7 @@ export const AccountSettingsSchema = z.object({
     useBestFormat: z.coerce.boolean().default(true),
     defaultQuality: z.coerce.number().min(10).max(100).default(DEFAULT_IMG_QUALITY),
     dataSaveMode: z.coerce.boolean().default(false),
-});
+}).strict();
 
 export type AccountSettings = z.infer<typeof AccountSettingsSchema>;
 

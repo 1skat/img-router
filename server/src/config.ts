@@ -49,7 +49,7 @@ export const cfg: ApiConfig = {
     bucketName,
     s3Endpoint,
     s3Region,
-    bunEnv: "dev"
+    bunEnv: "production",
 };
 
 function envOrThrow(key: string) {

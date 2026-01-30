@@ -1,11 +1,18 @@
 import { Elysia } from 'elysia';
 import { keyHandlers } from './routes/api_keys';
-import { accountRoutes } from './routes/accounts';
 import { imageRoutes } from './routes/images';
 import { hostname } from 'os';
-import { handlerServerErrorV2, withConfigV2, withConfig } from './middleware';
+import { handlerServerError } from './middleware';
 import { cfg } from './config';
 import { accountHandlers } from './routes/accounts';
+
+try {
+    await cfg.db.connect();
+    console.log("Redis connected successfully");
+} catch (err) {
+    console.error("Failed to connect to Redis:", err);
+    process.exit(1);
+};
 
 const imageApp = new Elysia()
     .onRequest(({ set }) => {
@@ -31,8 +38,7 @@ const imageApp = new Elysia()
     .use(imageRoutes)
 
 const apiApp = new Elysia({ prefix: "/api" })
-    .use(withConfigV2)
-    .onError(handlerServerErrorV2)
+    .onError(handlerServerError)
     .use(keyHandlers)
     .use(accountHandlers)
 
@@ -40,10 +46,11 @@ imageApp.listen({
     hostname: "0.0.0.0",
     port: 3001
 });
+console.log("server is running on port 3001");
 
 apiApp.listen({
     hostname: "0.0.0.0",
     port: 3002
 });
+console.log("server is running on port 3002");
 
-console.log("server is running on port 3001");

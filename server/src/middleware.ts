@@ -51,7 +51,7 @@ export const withAuth = async ({ cfg, headers }: {
     return { apiKey };
 };
 
-export const requireOwnershipV2 = async ({ cfg, apiKey, params }: {
+export const requireOwnership = async ({ cfg, apiKey, params }: {
     cfg: ApiConfig,
     apiKey: string,
     params: { accountName: string },
@@ -62,11 +62,11 @@ export const requireOwnershipV2 = async ({ cfg, apiKey, params }: {
         throw new NotFoundError("Account name not found");
     };
 
-    // Account name belongs the API key
+    // Account name belongs to the API key
     const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
     if (!ok) {
         throw new UserForbiddenError("Forbidden");
-    }
+    };
 
     return { accountId };
 };
@@ -92,36 +92,36 @@ export const requireOwnershipV2 = async ({ cfg, apiKey, params }: {
 //     };
 // };
 
-function getPathSegments(req: Request): string[] {
-    return new URL(req.url).pathname.split("/").filter(Boolean);
-};
+// function getPathSegments(req: Request): string[] {
+//     return new URL(req.url).pathname.split("/").filter(Boolean);
+// };
 
-export function requireOwnership(
-    next: HandlerWithConfig
-): HandlerWithConfig {
-    return async function (cfg: ApiConfig, req: Request): Promise<Response> {
-        const apiKey = (req as AuthenticatedRequest).apiKey;
-        const accountName = new URL(req.url).pathname.split("/").filter(Boolean)[2];
-        // if (!accountName || !/^[a-z0-9-]+$/i.test(accountName)) {
-        //     throw new BadRequestError("Invalid account name");
-        // };
+// export function requireOwnership(
+//     next: HandlerWithConfig
+// ): HandlerWithConfig {
+//     return async function (cfg: ApiConfig, req: Request): Promise<Response> {
+//         const apiKey = (req as AuthenticatedRequest).apiKey;
+//         const accountName = new URL(req.url).pathname.split("/").filter(Boolean)[2];
+//         // if (!accountName || !/^[a-z0-9-]+$/i.test(accountName)) {
+//         //     throw new BadRequestError("Invalid account name");
+//         // };
 
-        // await checkOwnership(cfg, apiKey, accountName);
-        const accountId = await cfg.db.get(`accountName:${accountName}`);
-        if (!accountId) {
-            throw new NotFoundError("Account name not found");
-        };
+//         // await checkOwnership(cfg, apiKey, accountName);
+//         const accountId = await cfg.db.get(`accountName:${accountName}`);
+//         if (!accountId) {
+//             throw new NotFoundError("Account name not found");
+//         };
 
-        const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
-        if (!ok) {
-            throw new UserForbiddenError("Forbidden");
-        }
+//         const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
+//         if (!ok) {
+//             throw new UserForbiddenError("Forbidden");
+//         }
 
-        (req as AuthenticatedRequest).accountId = accountId;
+//         (req as AuthenticatedRequest).accountId = accountId;
 
-        return await next(cfg, req);
-    };
-};
+//         return await next(cfg, req);
+//     };
+// };
 
 // app.derive(async ({ cfg, apiKey }) => {
 
@@ -166,11 +166,15 @@ type SingletonWithCfg = {
     resolve: Record<string, any>
 };
 
-export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ cfg, error, set }) => {
+export const handlerServerError: ErrorHandler = ({ code, error, set }) => {
     set.status = 500;
     let message = "Something went wrong on our end";
 
-    if (error instanceof BadRequestError) {
+    if (code === 'VALIDATION') {
+        set.status = 400;
+        message = "Bad request"
+    }
+    else if (error instanceof BadRequestError) {
         set.status = 400;
         message = error.message;
     } else if (error instanceof UserNotAuthenticatedError) {
@@ -185,12 +189,10 @@ export const handlerServerErrorV2: ErrorHandler<{}, {}, SingletonWithCfg> = ({ c
     } else if (cfg.bunEnv !== "production") {
         if (error instanceof Error) message = error.message;
         else if (typeof error === "string") message = error;
-    }
+    };
 
     return { error: message };
 };
 
-export const withConfigV2 = new Elysia()
+export const withConfig = new Elysia()
     .decorate("cfg", cfg);
-
-export type ApiAppWithConfig = typeof withConfigV2;
