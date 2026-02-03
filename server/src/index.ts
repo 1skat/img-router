@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia';
 import { keyHandlers } from './routes/api_keys';
-import { imageRoutes } from './routes/images';
 import { hostname } from 'os';
 import { handlerServerError } from './middleware';
 import { cfg } from './config';
 import { accountHandlers } from './routes/accounts';
+import { imageHandler } from './routes/images';
 
 try {
     await cfg.db.connect();
@@ -35,7 +35,7 @@ const imageApp = new Elysia()
             'Downlink'
         ].join(', ');
     })
-    .use(imageRoutes)
+    .use(imageHandler)
 
 const apiApp = new Elysia({ prefix: "/api" })
     .onError(handlerServerError)

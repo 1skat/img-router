@@ -3,12 +3,12 @@ import { z } from "zod";
 
 const PathMatchSchema = z.object({
     full: z.string(),
-    accountId: z.string().min(1),
+    accountName: z.string().min(1),
     fnString: z.string().optional(),
     assetPath: z.string().min(1),
 });
 
-export function parsePath(fullPath: string): { accountId: string, fnString: string | null, assetPath: string } {
+export function parsePath(fullPath: string): { accountName: string, fnString: string | null, assetPath: string } {
     const match = fullPath.match(/^\/?([^/]+)\/(?:fn:([^/]+)\/)?(.+)$/);
     if (!match) {
         throw new BadRequestError("Invalid path");
@@ -16,7 +16,7 @@ export function parsePath(fullPath: string): { accountId: string, fnString: stri
 
     const pathMatch = PathMatchSchema.safeParse({
         full: match[0],
-        accountId: match[1],
+        accountName: match[1],
         fnString: match[2],
         assetPath: match[3],
     });
@@ -26,7 +26,7 @@ export function parsePath(fullPath: string): { accountId: string, fnString: stri
     };
 
     return {
-        accountId: pathMatch.data.accountId,
+        accountName: pathMatch.data.accountName,
         fnString: pathMatch.data.fnString ?? null,
         assetPath: pathMatch.data.assetPath,
     };

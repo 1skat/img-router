@@ -2,10 +2,8 @@ import type { BunRequest } from "bun";
 import { cfg, type ApiConfig } from "./config";
 import { tryCatchAsync } from "./utils/try-catch";
 import { respondWithJSON } from "./utils/response";
-import { checkOwnership } from "./internal/db/redis";
 import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
 import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
-
 
 // type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
 

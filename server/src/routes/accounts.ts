@@ -127,7 +127,6 @@ export const accountHandlers = new Elysia()
         }),
     );
 
-
 // .group("/:id", (app) => app
 //     .use(requireOwnership)
 //     .get("/settings", async ({ params, set }) => {

@@ -105,9 +105,9 @@ export async function createAccount(cfg: ApiConfig, apiKey: string, accountName:
     if (!ok) {
         throw new BadRequestError("Account name already taken");
     };
+    await cfg.db.set(`accountId:${accountId}`, accountName);
 
     await cfg.db.sadd(`apiKey:${apiKey}:accounts`, accountId);
-
     const defaultSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse({});
     await cfg.db.hset(`account:${accountId}:settings`, defaultSettings);
 
@@ -118,6 +118,11 @@ export async function updateAccountSettings(cfg: ApiConfig, accountId: string, s
     const redisSettings = RedisAccountSettingsSchema.parse(settings);
     await cfg.db.hset(`account:${accountId}:settings`, redisSettings);
 
+    const accountName = await cfg.db.get(`accountId:${accountId}`);
+    if (!accountName) {
+        throw new Error("Account name not found");
+    };
+    cfg.lruCache.delete(accountName);
     return settings;
 };
 

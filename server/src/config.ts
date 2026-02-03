@@ -1,11 +1,13 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { RedisClient, S3Client } from "bun";
 import { Redis } from "@upstash/redis";
-
+import { LRUCache } from 'lru-cache';
+import type { AccountSettings } from "./internal/db/schema";
 
 export type ApiConfig = {
     db: RedisClient
     s3: S3Client,
+    lruCache: LRUCache<string, AccountSettings>,
     apiPort: string;
     imgPort: string;
     bucketName: string;
@@ -32,6 +34,7 @@ const s3 = new S3Client({
     endpoint: s3Endpoint,
     region: s3Region,
 });
+const lruCache = new LRUCache<string, AccountSettings>({ max: 10_000, ttl: 60 * 60 * 1000 });
 
 // const apiRL = new Ratelimit({
 //     redis: new Redis({
@@ -44,6 +47,7 @@ const s3 = new S3Client({
 export const cfg: ApiConfig = {
     db,
     s3,
+    lruCache,
     apiPort,
     imgPort,
     bucketName,
