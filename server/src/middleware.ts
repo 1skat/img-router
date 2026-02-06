@@ -4,33 +4,25 @@ import { tryCatchAsync } from "./utils/try-catch";
 import { respondWithJSON } from "./utils/response";
 import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
 import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
+import { getAccountIdFromName, hashApiKey } from "./internal/db/redis";
+import { accountHandlers } from "./routes/accounts";
 
-// type HandlerWithConfig = (cfg: ApiConfig, req: Request) => Promise<Response>;
+async function verifyApiKey(cfg: ApiConfig, apiKey: string) {
+    const hashedKey = hashApiKey(apiKey);
+    const cachedLru = cfg.lruCaches.apiKeys.get(hashedKey);
+    if (cachedLru) return cachedLru;
 
-// export interface AuthenticatedRequest extends Request {
-//     apiKey?: string;
-//     accountId?: string;
-// };
+    const cachedRedis = await cfg.rsCache.get(`apiKeyHash:${hashedKey}:accountId`);
+    if (cachedRedis) return cachedRedis;
 
-// export function withConfig(cfg: ApiConfig, handler: HandlerWithConfig) {
-//     return (req: BunRequest) => handler(cfg, req);
-// };
+    const doc = await cfg.db.apiKeys.findOne({ keyHash: hashedKey });
+    if (!doc) return;
 
-// export const withAuthV2 = (app: ApiAppWithConfig) =>
-//     app.derive(async ({ cfg, headers, set }) => {
+    cfg.lruCaches.apiKeys.set(hashedKey, doc.accountId);
+    await cfg.rsCache.set(`apiKeyHash:${hashedKey}:accountId`, doc.accountId);
 
-//         const apiKey = headers["x-api-key"];
-//         if (!apiKey) {
-//             throw new UserNotAuthenticatedError("Missing x-api-key header");
-//         };
-
-//         const exists = await cfg.db.exists(`apiKey:${apiKey}`);
-//         if (!exists) {
-//             throw new UserForbiddenError("Forbidden");
-//         };
-
-//         return { apiKey };
-//     });
+    return doc.accountId;
+};
 
 export const withAuth = async ({ cfg, headers }: {
     cfg: ApiConfig,
@@ -41,127 +33,25 @@ export const withAuth = async ({ cfg, headers }: {
         throw new UserNotAuthenticatedError("Missing x-api-key header");
     };
 
-    const exists = await cfg.db.exists(`apiKey:${apiKey}`);
-    if (!exists) {
+    const accountId = await verifyApiKey(cfg, apiKey);
+    if (!accountId) {
         throw new UserForbiddenError("Forbidden");
-    };
+    }
 
-    return { apiKey };
+    return { apiKey, accountId };
 };
 
-export const requireOwnership = async ({ cfg, apiKey, params }: {
+export const requireOwnership = async ({ cfg, accountId, params }: {
     cfg: ApiConfig,
-    apiKey: string,
+    accountId: string,
     params: { accountName: string },
 }) => {
-    // Account name exists globaly
-    const accountId = await cfg.db.get(`accountName:${params.accountName}`);
-    if (!accountId) {
-        throw new NotFoundError("Account name not found");
-    };
-
-    // Account name belongs to the API key
-    const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
-    if (!ok) {
+    const reqAccountId = await getAccountIdFromName(cfg, params.accountName);
+    if (accountId !== reqAccountId) {
         throw new UserForbiddenError("Forbidden");
     };
 
-    return { accountId };
-};
-
-
-// export function withAuth(
-//     next: HandlerWithConfig,
-// ): HandlerWithConfig {
-//     return async function (cfg: ApiConfig, req: Request): Promise<Response> {
-//         const apiKey = req.headers.get("X-API-KEY");
-//         if (!apiKey) {
-//             throw new UserNotAuthenticatedError("Missing X-API-KEY header");
-//         };
-
-//         const exists = await cfg.db.exists(`apiKey:${apiKey}`);
-//         if (!exists) {
-//             throw new UserForbiddenError("Forbidden");
-//         };
-
-//         (req as AuthenticatedRequest).apiKey = apiKey;
-
-//         return await next(cfg, req);
-//     };
-// };
-
-// function getPathSegments(req: Request): string[] {
-//     return new URL(req.url).pathname.split("/").filter(Boolean);
-// };
-
-// export function requireOwnership(
-//     next: HandlerWithConfig
-// ): HandlerWithConfig {
-//     return async function (cfg: ApiConfig, req: Request): Promise<Response> {
-//         const apiKey = (req as AuthenticatedRequest).apiKey;
-//         const accountName = new URL(req.url).pathname.split("/").filter(Boolean)[2];
-//         // if (!accountName || !/^[a-z0-9-]+$/i.test(accountName)) {
-//         //     throw new BadRequestError("Invalid account name");
-//         // };
-
-//         // await checkOwnership(cfg, apiKey, accountName);
-//         const accountId = await cfg.db.get(`accountName:${accountName}`);
-//         if (!accountId) {
-//             throw new NotFoundError("Account name not found");
-//         };
-
-//         const ok = await cfg.db.sismember(`apiKey:${apiKey}:accounts`, accountId);
-//         if (!ok) {
-//             throw new UserForbiddenError("Forbidden");
-//         }
-
-//         (req as AuthenticatedRequest).accountId = accountId;
-
-//         return await next(cfg, req);
-//     };
-// };
-
-// app.derive(async ({ cfg, apiKey }) => {
-
-//     });
-// export function handlerServerError(err: unknown) {
-//     let statusCode = 500;
-//     let message = "Something went wrong on our end";
-
-//     if (err instanceof BadRequestError) {
-//         statusCode = 400;
-//         message = err.message;
-//     }
-//     else if (err instanceof UserNotAuthenticatedError) {
-//         statusCode = 401;
-//         message = err.message;
-//     }
-//     else if (err instanceof UserForbiddenError) {
-//         statusCode = 403;
-//         message = err.message;
-//     }
-//     else if (err instanceof NotFoundError) {
-//         statusCode = 404;
-//         message = err.message;
-//     }
-//     if (statusCode >= 500) {
-//         message = ((err: unknown) => {
-//             if (typeof err === "string") return err;
-//             if (err instanceof Error) return err.message;
-//             return "Unknown message occured";
-//         })(err);
-//     };
-
-//     return respondWithJSON(statusCode, message);
-// };
-
-type SingletonWithCfg = {
-    decorator: {
-        cfg: ApiConfig;
-    };
-    store: Record<string, any>
-    derive: Record<string, any>
-    resolve: Record<string, any>
+    return { accountId, accountName: params.accountName };
 };
 
 export const handlerServerError: ErrorHandler = ({ code, error, set }) => {

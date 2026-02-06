@@ -1,7 +1,5 @@
 import { createApiKey } from "@/internal/db/redis";
 import { withConfig } from "@/middleware";
-// import type { ApiAppWithConfig } from "@/middleware";
-// import type { ApiAppWithConfig } from "@/middleware";
 import { tryCatchAsync } from "@/utils/try-catch";
 import { Elysia, t } from "elysia";
 

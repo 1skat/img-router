@@ -6,8 +6,8 @@ import { tryCatch, tryCatchAsync } from "@/utils/try-catch";
 import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
-import { getAccountSettings } from "@/internal/db/redis";
-import { resolveSharpInstructionsV2 } from "@/img_processor/resolver/resolver";
+import { getAccountIdFromName, getAccountSettings } from "@/internal/db/redis";
+import { resolveSharpInstructions, resolveSharpInstructionsV2 } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/url_parser";
 import { getBestFormat } from "@/utils/best_format";
@@ -49,14 +49,15 @@ export const imageHandler = new Elysia()
         };
 
         // Get account settings
-        const buf = fs.readFileSync(path.join(__dirname, assetPath));
-        const accountSettings = await getSettings(cfg, accountName);
-        const clientHints = getClientHints(headers);
+        const acccountId = await getAccountIdFromName(cfg, accountName);
+        const accountSettings = await getAccountSettings(cfg, acccountId);
 
-        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructionsV2(buf, parsedParamChains, accountSettings));
+        const clientHints = getClientHints(headers); // to-do: utilize client hints
+
+        const buf = fs.readFileSync(path.join(__dirname, assetPath));
+        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, accountSettings));
         if (resolverErr) {
-            set.status = 400;
-            return { error: resolverErr.message };
+            throw new Error(resolverErr.message);
         };
 
         const meta = await sharp(finalBuf).metadata();
@@ -64,21 +65,20 @@ export const imageHandler = new Elysia()
             "Content-Type": `image/${meta.format}`,
             "Vary": "Accept",
         };
-        set.status = 200;
 
         return finalBuf;
     });
 
-async function getSettings(cfg: ApiConfig, accountName: string) {
-    const cached = cfg.lruCache.get(accountName);
-    if (cached) return cached;
+// async function getSettings(cfg: ApiConfig, accountName: string) {
+//     const cachedSettings = cfg.lruCache.get(accountName);
+//     if (cachedSettings) return cachedSettings;
 
-    const accountId = await cfg.db.get(`accountName:${accountName}`);
-    if (!accountId) {
-        throw new NotFoundError("Account name not found");
-    };
+//     const accountId = await cfg.db.get(`accountName:${accountName}`);
+//     if (!accountId) {
+//         throw new NotFoundError("Account name not found");
+//     };
 
-    const settings = await getAccountSettings(cfg, accountId)
-    cfg.lruCache.set(accountName, settings);
-    return settings;
-}
+//     const settings = await getAccountSettings(cfg, accountId)
+//     cfg.lruCache.set(accountName, settings);
+//     return settings;
+// };

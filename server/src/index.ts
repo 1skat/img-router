@@ -2,18 +2,11 @@ import { Elysia } from 'elysia';
 import { keyHandlers } from './routes/api_keys';
 import { hostname } from 'os';
 import { handlerServerError } from './middleware';
-import { cfg } from './config';
+import { cfg, connectServices } from './config';
 import { accountHandlers } from './routes/accounts';
 import { imageHandler } from './routes/images';
 
-try {
-    await cfg.db.connect();
-    console.log("Redis connected successfully");
-} catch (err) {
-    console.error("Failed to connect to Redis:", err);
-    process.exit(1);
-};
-
+await connectServices();
 const imageApp = new Elysia()
     .onRequest(({ set }) => {
         set.headers['Accept-CH'] = [

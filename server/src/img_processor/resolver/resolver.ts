@@ -67,12 +67,12 @@ export async function getFinalSharpInstance(buf: Buffer, chain: any, resolver: T
     return transforms(sharpInst);
 };
 
-export async function resolveSharpInstructionsV2(buf: Buffer, funcChains: any[], accSettings: any) {
+export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], accSettings: any) {
     try {
         const resolver = new TransformationResolver(accSettings);
         let currBuf = buf;
 
-        let i = 0
+        // let i = 0
         for (const chain of funcChains) {
             const inst = await getFinalSharpInstance(currBuf, chain, resolver);
             currBuf = await inst.toBuffer();
