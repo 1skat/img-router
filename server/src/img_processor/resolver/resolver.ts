@@ -4,7 +4,7 @@ import { ImageState } from "./state";
 import { ImageStateMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
 import { compile } from "./compiler";
-import type { AccountSettings } from "@/internal/db/schema";
+import type { AccountSettings } from "@/internal/schema";
 import type { UserSettings } from "./types";
 
 // export function resolveSharpInstructions(metadata: sharp.Metadata, funcChains: any[], accSettings: any) {
@@ -22,7 +22,7 @@ import type { UserSettings } from "./types";
 
 export function buildTransfromInstance(chain: any) {
     return (instance: any) => {
-        let c = 1;
+        // let c = 1;
         for (const { method, content } of chain) {
             // console.log(`#${c++} ${method} ${JSON.stringify(content)}`);
             if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
@@ -99,7 +99,7 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], a
 export class TransformationResolver {
     public settings: UserSettings;
 
-    constructor(settings: any) {
+    constructor(settings: UserSettings) {
         this.settings = settings;
     };
 

@@ -2,10 +2,9 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { RedisClient, S3Client } from "bun";
 import { Redis } from "@upstash/redis";
 import { LRUCache } from 'lru-cache';
-import { AccountDocSchema, AccountSettingsDocSchema, AccountSettingsSchema, ApiKeyDocSchema, type AccountDoc, type AccountSettings, type AccountSettingsDoc, type ApiKeyDoc } from "./internal/db/schema";
+import { AccountDocSchema, AccountSettingsDocSchema, AccountSettingsSchema, ApiKeyDocSchema, type AccountDoc, type AccountSettings, type AccountSettingsDoc, type ApiKeyDoc } from "./internal/schema";
 import type z from "zod";
 import { MongoClient } from "mongodb";
-
 
 const pathToMongo = envOrThrow("MONGO_URL");
 const pathToRedis = envOrThrow("REDIS_URL");

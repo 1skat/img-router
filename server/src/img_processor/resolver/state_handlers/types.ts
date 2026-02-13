@@ -16,8 +16,8 @@ export type ResizeContent = {
         b: number;
         alpha: number;
     } | undefined;
-    fit: keyof FitEnum | undefined,
-    position: "top" | "right top" | "right" | "right bottom" | "bottom" | "left bottom" | "left" | "left top" | undefined
+    fit?: keyof FitEnum | undefined,
+    position?: "top" | "right top" | "right" | "right bottom" | "bottom" | "left bottom" | "left" | "left top" | undefined
 };
 
 export type ExtendContent = {

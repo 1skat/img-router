@@ -1,10 +1,10 @@
 import { Elysia } from 'elysia';
 import { keyHandlers } from './routes/api_keys';
 import { hostname } from 'os';
-import { handlerServerError } from './middleware';
 import { cfg, connectServices } from './config';
 import { accountHandlers } from './routes/accounts';
 import { imageHandler } from './routes/images';
+import { handlerServerError } from './middleware';
 
 await connectServices();
 const imageApp = new Elysia()

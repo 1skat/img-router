@@ -20,7 +20,6 @@
     - isPrivate flag: image is marked as private (PATCH endpoint)
     - named transformations + (guard rails for hotlinking)* -->
     
-    
 0. This does not work, fix it
     const redisSettings: RedisAccountSettings = RedisAccountSettingsSchema.parse(defaultSettings);
     await cfg.rsCache.hset(`settings:${accountId}`, JSON.stringify(defaultSettings))

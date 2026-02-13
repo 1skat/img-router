@@ -6,17 +6,15 @@ import { tryCatch, tryCatchAsync } from "@/utils/try-catch";
 import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
-import { getAccountIdFromName, getAccountSettings } from "@/internal/db/redis";
-import { resolveSharpInstructions, resolveSharpInstructionsV2 } from "@/img_processor/resolver/resolver";
+import { resolveSharpInstructions } from "@/img_processor/resolver/resolver";
 import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/url_parser";
 import { getBestFormat } from "@/utils/best_format";
 import { getClientHints } from "@/utils/get_client_hints";
-import { withConfig } from "@/middleware";
 import { BadRequestError } from "@/errors";
 import type { ApiConfig } from "@/config";
-
-
+import { withConfig } from "@/middleware";
+import { getAccountIdFromName, getAccountSettings } from "@/internal/db";
 
 export const imageHandler = new Elysia()
     .use(withConfig)
@@ -54,7 +52,7 @@ export const imageHandler = new Elysia()
 
         const clientHints = getClientHints(headers); // to-do: utilize client hints
 
-        const buf = fs.readFileSync(path.join(__dirname, assetPath));
+        const buf = fs.readFileSync(path.join(__dirname, assetPath)); // temporary, in produciton would use buffer from s3
         const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, accountSettings));
         if (resolverErr) {
             throw new Error(resolverErr.message);
@@ -68,17 +66,3 @@ export const imageHandler = new Elysia()
 
         return finalBuf;
     });
-
-// async function getSettings(cfg: ApiConfig, accountName: string) {
-//     const cachedSettings = cfg.lruCache.get(accountName);
-//     if (cachedSettings) return cachedSettings;
-
-//     const accountId = await cfg.db.get(`accountName:${accountName}`);
-//     if (!accountId) {
-//         throw new NotFoundError("Account name not found");
-//     };
-
-//     const settings = await getAccountSettings(cfg, accountId)
-//     cfg.lruCache.set(accountName, settings);
-//     return settings;
-// };

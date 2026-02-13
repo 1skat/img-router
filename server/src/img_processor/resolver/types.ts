@@ -55,7 +55,7 @@ type SupportedImageFormat =
     | "webp"
     | "avif"
     | "png"
-    | "jpeg"
+    | "jpeg";
 
 export type UserSettings = {
     format: SupportedImageFormat,

@@ -1,12 +1,11 @@
 import { TransformationResolver } from "@/img_processor/resolver/resolver";
 import type { AspectRatioType, ResizeType } from "../../types";
 import type { ResizeOptions } from "sharp";
-import type sharp from "sharp";
-import { unescape } from "querystring";
 import type { ImageState } from "../state";
+import type { ResizeContent } from "../state_handlers/types";
 
 function handleBothSides(ctx: ImageState, dimensions: { width: number, height: number }, opts: ResizeType) {
-    const out: ResizeOptions = {};
+    const out: ResizeContent = {};
     const { width, height } = dimensions;
     const { fit, bg, x, y } = opts;
 
@@ -31,7 +30,6 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
 
     const maxTop = resizedH - height;
     const maxLeft = resizedW - width;
-    console.log(maxTop, maxLeft);
     if (x > maxLeft || (x === 0 && maxLeft === 0)) throw new Error(`x out of boundary. Max offset: ${resizedW - width}px`);
     if (y > maxTop || (y === 0 && maxTop === 0)) throw new Error(`y out of boundary. Max offset: ${resizedH - height}px`);
 
@@ -49,7 +47,7 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
 };
 
 function handleSingleSide(ctx: ImageState, dimensions: { width?: number, height?: number }, opts: ResizeType) {
-    const out: sharp.ResizeOptions = {};
+    const out: ResizeContent = {};
 
     const { width, height } = dimensions;
     const { fit, x, y, bg } = opts;

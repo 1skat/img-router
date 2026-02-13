@@ -4,8 +4,8 @@ import { tryCatchAsync } from "./utils/try-catch";
 import { respondWithJSON } from "./utils/response";
 import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
 import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
-import { getAccountIdFromName, hashApiKey } from "./internal/db/redis";
 import { accountHandlers } from "./routes/accounts";
+import { getAccountIdFromName, hashApiKey } from "./internal/db";
 
 async function verifyApiKey(cfg: ApiConfig, apiKey: string) {
     const hashedKey = hashApiKey(apiKey);

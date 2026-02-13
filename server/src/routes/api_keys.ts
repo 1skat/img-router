@@ -1,7 +1,6 @@
-import { createApiKey } from "@/internal/db/redis";
+import { createApiKey } from "@/internal/db";
 import { withConfig } from "@/middleware";
-import { tryCatchAsync } from "@/utils/try-catch";
-import { Elysia, t } from "elysia";
+import Elysia, { t } from "elysia";
 
 export const keyHandlers = new Elysia()
     .use(withConfig)

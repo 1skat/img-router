@@ -1,11 +1,11 @@
 import type { ApiConfig } from "@/config";
 import { NotFoundError } from "elysia";
-import { AccountSettingsSchema, RedisAccountSettingsSchema, type AccountSettings, type RedisAccountSettings } from "./schema";
-import { generateAccountId, generateApiKey } from "../auth/auth";
+import { AccountSettingsSchema, type AccountSettings } from "./schema";
 import { BadRequestError, UserForbiddenError } from "@/errors";
 import { tryCatchAsync } from "@/utils/try-catch";
 import crypto from 'crypto';
 import { keyHandlers } from "@/routes/api_keys";
+import { generateAccountId, generateApiKey } from "./auth";
 
 export async function getAccountSettings(cfg: ApiConfig, accountId: string) {
     const cachedLRU = cfg.lruCaches.settings.get(accountId);
