@@ -51,15 +51,12 @@ export type StateMap = {
     [key: string]: (state: ImageState, args: any) => void;
 };
 
-export type UserSettings = {
-    format: FormatEnum,
-    quality: number,
+export type EncodingConfig = {
+    format: keyof FormatEnum;
+    quality: number;
 };
 
 export type ResolverContext = {
-    encoding: {
-        format: keyof FormatEnum,
-        quality: number,
-    },
+    encoding: EncodingConfig;
 };
 

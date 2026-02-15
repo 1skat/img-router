@@ -5,7 +5,7 @@ import { ImageStateMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
 import { compileEncoding, compileTransforms, type SharpInstr } from "./compiler";
 import type { AccountSettings } from "@/internal/schema";
-import type { ResolverContext, SupportedImageFormat, UserSettings } from "./types";
+import type { ResolverContext, UserSettings } from "./types";
 
 // export function resolveSharpInstructions(metadata: sharp.Metadata, funcChains: any[], accSettings: any) {
 //     const [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
@@ -132,7 +132,7 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], r
 
 export class TransformationResolver {
     public encoding: {
-        format: SupportedImageFormat | null,
+        format: keyof sharp.FormatEnum,
         quality: number,
     };
 

@@ -2,7 +2,7 @@ import sharp from "sharp";
 import type { TransformationResolver } from "./resolver";
 import { ImageState } from "./state";
 import { get } from "./helpers";
-import type { UserSettings } from "./types";
+import type { EncodingConfig } from "./types";
 
 type SharpContentTypes = {
     rotate: [number, sharp.RotateOptions],
@@ -11,7 +11,7 @@ type SharpContentTypes = {
     extend: [sharp.ExtendOptions],
     flip: [boolean],
     flop: [boolean],
-    toFormat: ["png" | "jpeg" | "avif" | "webp", { quality: number }]
+    toFormat: [keyof sharp.FormatEnum, { quality: number }]
 };
 
 export type SharpInstr = {
@@ -96,21 +96,10 @@ export function compileTransforms(img: ImageState) {
         });
     };
 
-    // encoding
-    // if (img.state.formatOut || settings.format) {
-    //     sharpInstructions.push({
-    //         method: "toFormat",
-    //         content: [
-    //             img.state.formatOut ?? settings.format,
-    //             { quality: img.state.formatQuality ?? settings.quality }
-    //         ],
-    //     });
-    // };
-
     return sharpInstructions;
 };
 
-export function compileEncoding(encoding: any) {
+export function compileEncoding(encoding: EncodingConfig) {
     const sharpInstructions: SharpInstr[] = [];
     sharpInstructions.push({
         method: "toFormat",
