@@ -7,7 +7,6 @@ import { parsePath } from "@/utils/path_parser";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from "sharp";
 import { resolveSharpInstructions } from "@/img_processor/resolver/resolver";
-import { buildSharpTransformer } from "@/img_processor/ix_builder/build_transform";
 import { ParameterParser } from "@/img_processor/input_parser/url_parser";
 import { getBestFormat } from "@/utils/best_format";
 import { getClientHints } from "@/utils/get_client_hints";
@@ -62,13 +61,6 @@ export const imageHandler = new Elysia()
                 quality: accountSettings.defaultQuality,
             },
         };
-        // const imageFormat = accountSettings.useBestFormat ? getBestFormat(clientHints.userDeviceSupportedFormats, buf)
-
-        // const resolverCtx: ResolverContext = {
-        //     encoding: {
-        //         format: getBestFormat(clientHints.userDeviceSupportedFormats) ?? accountSettings.
-        //     }
-        // }
 
         const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, resolverCtx));
         if (resolverErr) {

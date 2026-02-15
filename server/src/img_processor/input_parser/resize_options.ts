@@ -50,7 +50,7 @@ export const resizeFunctionHandlers = {
 function axisHandler(vals: string) {
     if (!vals.trim()) throw new Error("x_axis_image_handler: parameter required after `x`");
 
-    const match = vals.match(/^\d+$/); // e.g 130
+    const match = vals.match(/^\d+$/);
     if (!match) throw new Error("x value undefined");
 
     const num = parseInt(match[0], 10);
@@ -62,7 +62,7 @@ function axisHandler(vals: string) {
 function resizeHandler(vals: string) {
     if (!vals.trim()) throw new Error("resize_image_handler: parameter required after `rs`");
 
-    const match = vals.match(/^\d+$/); // e.g 350
+    const match = vals.match(/^\d+$/);
     if (!match) throw new Error("height undefined");
 
     const num = parseInt(match[0], 10);
@@ -74,7 +74,7 @@ function resizeHandler(vals: string) {
 function fitImageHandler(vals: string) {
     if (!vals.trim()) throw new Error("fit_image_handler: parameter required after `fit`");
 
-    const match = vals.match(/^(p|in|out|fill)(.*)$/); // e.g 'prt' (padding right top) 
+    const match = vals.match(/^(p|in|out|fill)(.*)$/);
     if (!match) throw new Error(`Invalid fit transformation: ${vals}`);
 
     const [_, mode, position] = match;
