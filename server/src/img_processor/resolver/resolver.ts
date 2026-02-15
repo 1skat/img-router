@@ -3,9 +3,9 @@ import { tryCatch } from "@/utils/try-catch";
 import { ImageState } from "./state";
 import { ImageStateMap, SharpInsructionMap } from "./hashmaps";
 import type { AddInstructionType } from "./state_handlers/types";
-import { compile } from "./compiler";
+import { compileEncoding, compileTransforms, type SharpInstr } from "./compiler";
 import type { AccountSettings } from "@/internal/schema";
-import type { UserSettings } from "./types";
+import type { ResolverContext, SupportedImageFormat, UserSettings } from "./types";
 
 // export function resolveSharpInstructions(metadata: sharp.Metadata, funcChains: any[], accSettings: any) {
 //     const [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
@@ -56,33 +56,66 @@ export function buildTransfromInstance(chain: any) {
 //     };
 // };
 
-export async function getFinalSharpInstance(buf: Buffer, chain: any, resolver: TransformationResolver) {
-    let sharpInst = sharp(buf);
-    const metadata = await sharpInst.metadata();
-    const imgState = new ImageState(metadata);
+// export async function getSharpInstanceV1(buf: Buffer, chain: any, resolver: TransformationResolver, isLastChain: boolean) {
+//     let sharpInst = sharp(buf);
+//     const metadata = await sharpInst.metadata();
+//     const imgState = new ImageState(metadata);
+//     const sharpIxs = resolver.resolveChain(imgState, chain);
+//     console.log("Final sharp instrs:", sharpIxs);
+//     // const transforms = buildTransfromInstance(sharpIxs);
+//     const transforms = (instance: any) => {
+//         for (const { method, content } of sharpIxs) {
+//             // console.log(`#${c++} ${method} ${JSON.stringify(content)}`);
+//             if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
+//             instance = instance[method](...(content));
+//         }
+//         return instance;
+//     }
 
-    const sharpIxs = resolver.resolveChain(imgState, chain);
+//     return transforms(sharpInst);
+// };
 
-    const transforms = buildTransfromInstance(sharpIxs);
-    return transforms(sharpInst);
+
+export function tranformSharpInstance(sharpInstructions: SharpInstr[]) {
+    return (instance: any) => {
+        for (const { method, content } of sharpInstructions) {
+            console.log(method, content);
+            if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
+            instance = instance[method](...(content));
+        }
+        return instance;
+    };
 };
 
-export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], accSettings: any) {
-    try {
-        const resolver = new TransformationResolver(accSettings);
-        let currBuf = buf;
+export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], resolverCtx: ResolverContext) {
+    const resolver = new TransformationResolver(resolverCtx);
+    let currBuffer = buf;
 
-        // let i = 0
-        for (const chain of funcChains) {
-            const inst = await getFinalSharpInstance(currBuf, chain, resolver);
-            currBuf = await inst.toBuffer();
-            // if (i++ === funcChains.length - 1) console.log("entries", Object.fromEntries(Object.entries(inst.options).slice(0, 18)));
-        };
+    for (let i = 0; i < funcChains.length; i++) {
+        const isLastChain = i === funcChains.length - 1;
+        const sharpInst = sharp(buf);
+        const metadata = await sharpInst.metadata();
 
-        return currBuf;
-    } catch (err) {
-        throw err;
-    };
+        const imgState = new ImageState(metadata);
+        const sharpIxs = resolver.resolveChain(imgState, funcChains[i], isLastChain);
+        const inst = tranformSharpInstance(sharpIxs)(sharpInst)
+        currBuffer = inst.toBuffer();
+    }
+
+    return currBuffer;
+    // try {
+    //     const resolver = new TransformationResolver(resolverCtx); // <- State per transformation
+    //     let currBuf = buf;
+
+    //     for (const chain of funcChains) { // e.g could be 3 chains (sepertaed by ::) - rs(400,150),pad(20,side:t,bg:f3f3f3)::extr(50,50,0,0)::rt(90) 
+    //         const inst = await getSharpInstance(currBuf, chain, resolver); // returns an instance (a single transformation applied)
+    //         currBuf = await inst.toBuffer();
+    //     };
+
+    //     return currBuf;
+    // } catch (err) {
+    //     throw err;
+    // };
 };
 
 // let [imgState, imgStateErr] = tryCatch(() => new ImageState(metadata));
@@ -97,20 +130,31 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], a
 // });
 
 export class TransformationResolver {
-    public settings: UserSettings;
-
-    constructor(settings: UserSettings) {
-        this.settings = settings;
+    public encoding: {
+        format: SupportedImageFormat | null,
+        quality: number,
     };
 
-    resolveChain(img: ImageState, chain: typeof SharpInsructionMap) {
+    constructor(ctx: ResolverContext) {
+        this.encoding = {
+            format: ctx.encoding.format,
+            quality: ctx.encoding.quality,
+        };
+    };
+
+    resolveChain(img: ImageState, chain: typeof SharpInsructionMap, isLastChain: boolean) {
         for (const [method, content] of Object.entries(chain)) {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
-            if (handler) handler(img, content);
+            if (handler) handler(this /* global ctx */, img /* state */, content);
         };
 
-        // console.log("final state", img.state);
-        return compile(img, this.settings);
+        const transfomIxs = compileTransforms(img);
+        const encodeIxs = isLastChain ? compileEncoding(this.encoding) : [];
+
+        return [
+            ...transfomIxs,
+            ...encodeIxs,
+        ];
     };
 
     // updateState<K extends keyof AddInstructionType>(sharpMethod: K, methodArgs: AddInstructionType[K]) {

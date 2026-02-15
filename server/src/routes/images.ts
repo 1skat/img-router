@@ -15,6 +15,7 @@ import { BadRequestError } from "@/errors";
 import type { ApiConfig } from "@/config";
 import { withConfig } from "@/middleware";
 import { getAccountIdFromName, getAccountSettings } from "@/internal/db";
+import type { ResolverContext } from "@/img_processor/resolver/types";
 
 export const imageHandler = new Elysia()
     .use(withConfig)
@@ -46,21 +47,37 @@ export const imageHandler = new Elysia()
             throw new BadRequestError(paramErr.message)
         };
 
-        // Get account settings
+        const buf = fs.readFileSync(path.join(__dirname, assetPath));
+        const imgMetadata = await sharp(buf).metadata();
+
+        // Account settings
         const acccountId = await getAccountIdFromName(cfg, accountName);
         const accountSettings = await getAccountSettings(cfg, acccountId);
+        const clientHints = getClientHints(headers);
 
-        const clientHints = getClientHints(headers); // to-do: utilize client hints
+        const bestFormat = await getBestFormat(clientHints.userDeviceSupportedFormats, imgMetadata);
+        const resolverCtx: ResolverContext = {
+            encoding: {
+                format: accountSettings.useBestFormat ? bestFormat : null,
+                quality: accountSettings.defaultQuality,
+            },
+        };
+        // const imageFormat = accountSettings.useBestFormat ? getBestFormat(clientHints.userDeviceSupportedFormats, buf)
 
-        const buf = fs.readFileSync(path.join(__dirname, assetPath)); // temporary, in produciton would use buffer from s3
-        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, accountSettings));
+        // const resolverCtx: ResolverContext = {
+        //     encoding: {
+        //         format: getBestFormat(clientHints.userDeviceSupportedFormats) ?? accountSettings.
+        //     }
+        // }
+
+        const [finalBuf, resolverErr] = await tryCatchAsync(() => resolveSharpInstructions(buf, parsedParamChains, resolverCtx));
         if (resolverErr) {
             throw new Error(resolverErr.message);
         };
 
         const meta = await sharp(finalBuf).metadata();
         set.headers = {
-            "Content-Type": `image/${meta.format}`,
+            "Content-Type": `image/${meta.format === "heif" ? "avif" : meta.format}`,
             "Vary": "Accept",
         };
 

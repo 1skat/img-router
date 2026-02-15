@@ -1,6 +1,6 @@
 import type { TransformationResolver } from "../resolver";
 import type { ImageState } from "../state";
-export function resolveFlop(ctx: ImageState) {
+export function resolveFlop(ctx: TransformationResolver, img: ImageState) {
 
-    ctx.updateState("flop", true);
+    img.updateState("flop", true);
 };

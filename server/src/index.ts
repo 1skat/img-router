@@ -33,7 +33,7 @@ const imageApp = new Elysia()
 const apiApp = new Elysia({ prefix: "/api" })
     .onError(handlerServerError)
     .use(keyHandlers)
-    .use(accountHandlers)
+    .use(accountHandlers);
 
 imageApp.listen({
     hostname: "0.0.0.0",

@@ -4,7 +4,7 @@ import type { ExtendOptions } from "sharp";
 import type { ExtendContent } from "../state_handlers/types";
 import type { ImageState } from "../state";
 
-export function resolvePadding(ctx: ImageState, data: PaddingType) {
+export function resolvePadding(ctx: TransformationResolver, img: ImageState, data: PaddingType) {
     const out: ExtendContent = {};
     const { px, side, bg } = data;
 
@@ -23,5 +23,5 @@ export function resolvePadding(ctx: ImageState, data: PaddingType) {
         out.right = side.right ? px : undefined;
     };
 
-    ctx.updateState("extend", out);
+    img.updateState("extend", out);
 };

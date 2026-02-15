@@ -2,28 +2,28 @@ import type { AspectRatioType } from "@/img_processor/types";
 import type { TransformationResolver } from "../resolver";
 import type { ImageState } from "../state";
 
-export const resolveAspectRatio = (ctx: ImageState, data: AspectRatioType): void => {
+export const resolveAspectRatio = (ctx: TransformationResolver, img: ImageState, data: AspectRatioType): void => {
     const { w, h, fit } = data;
 
-    const currAr = ctx.getAspectRatio;
+    const currAr = img.getAspectRatio;
     const targetAr = w / h;
 
-    const currWidth = ctx.getCurrWidth;
-    const currHeight = ctx.getCurrHeight;
+    const currWidth = img.getCurrWidth;
+    const currHeight = img.getCurrHeight;
 
     const newWidth = (fit === "w") ? currWidth : Math.round(currHeight * targetAr);
     const newHeight = (fit === "h") ? currHeight : Math.round(currWidth / targetAr);
 
-    if (ctx.isPostExtracted) {
-        if (newWidth > ctx.state.rsWidth) throw new Error(`aspect ratio: max width exceded`);
-        if (newHeight > ctx.state.rsHeight) throw new Error(`aspect ratio: max height exceded`);
-        ctx.updateState("postExtract", { width: newWidth, height: newHeight, left: ctx.state.postLeftOffset, top: ctx.state.postTopOffset });
+    if (img.isPostExtracted) {
+        if (newWidth > img.state.rsWidth) throw new Error(`aspect ratio: max width exceded`);
+        if (newHeight > img.state.rsHeight) throw new Error(`aspect ratio: max height exceded`);
+        img.updateState("postExtract", { width: newWidth, height: newHeight, left: img.state.postLeftOffset, top: img.state.postTopOffset });
     }
-    else if (!ctx.isRsized && ctx.isPreExtracted) {
-        ctx.updateState("preExtract", { width: newWidth, height: newHeight, left: ctx.state.preLeftOffset, top: ctx.state.preTopOffset });
+    else if (!img.isRsized && img.isPreExtracted) {
+        img.updateState("preExtract", { width: newWidth, height: newHeight, left: img.state.preLeftOffset, top: img.state.preTopOffset });
     }
     else {
-        ctx.updateState("resize", { width: newWidth, height: newHeight });
+        img.updateState("resize", { width: newWidth, height: newHeight });
     };
 
     // 800x450 - ar(2,3) - ar > tar

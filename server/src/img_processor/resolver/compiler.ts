@@ -14,14 +14,14 @@ type SharpContentTypes = {
     toFormat: ["png" | "jpeg" | "avif" | "webp", { quality: number }]
 };
 
-type SharpInstr = {
+export type SharpInstr = {
     [K in keyof SharpContentTypes]: {
         method: K,
         content: SharpContentTypes[K],
     }
 }[keyof SharpContentTypes];
 
-export function compile(img: ImageState, settings: UserSettings) {
+export function compileTransforms(img: ImageState) {
     const sharpInstructions: SharpInstr[] = [];
 
     if (img.state.rotateBefore && img.isRotated) {
@@ -97,18 +97,29 @@ export function compile(img: ImageState, settings: UserSettings) {
     };
 
     // encoding
-    if (img.state.formatOut || settings.format) {
-        sharpInstructions.push({
-            method: "toFormat",
-            content: [
-                img.state.formatOut ?? settings.format,
-                { quality: img.state.formatQuality ?? settings.quality }
-            ],
-        });
-    };
+    // if (img.state.formatOut || settings.format) {
+    //     sharpInstructions.push({
+    //         method: "toFormat",
+    //         content: [
+    //             img.state.formatOut ?? settings.format,
+    //             { quality: img.state.formatQuality ?? settings.quality }
+    //         ],
+    //     });
+    // };
 
     return sharpInstructions;
 };
 
 
+export function compileEncoding(encoding: any) {
+    const sharpInstructions: SharpInstr[] = [];
+    sharpInstructions.push({
+        method: "toFormat",
+        content: [
+            encoding.format,
+            { quality: encoding.quality },
+        ],
+    });
 
+    return sharpInstructions;
+};

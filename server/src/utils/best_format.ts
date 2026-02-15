@@ -1,5 +1,5 @@
+import type { SupportedImageFormat } from "@/img_processor/resolver/types";
 import sharp from "sharp";
-import type { ClientHints } from "./get_client_hints";
 
 const WEBP = "webp";
 const AVIF = "avif";
@@ -8,20 +8,18 @@ const JPEG = "jpeg";
 const GIF = "gif";
 const SVG = "svg";
 
-export async function getBestFormat(supported: string | null, buf: Buffer) {
-    const meta = await sharp(buf).metadata();
-    if (!supported || !meta) return;
+export async function getBestFormat(supported: string | undefined, metadata: sharp.Metadata) {
+    if (!supported || !metadata) return null;
 
     const accepts = supported.toLowerCase();
+    const originalFormat = metadata.format;
 
-    if (meta.format === "svg") {
-        return undefined
-    };
+    if (originalFormat === "svg") return null;
 
     const supportsAvif = accepts.includes('image/avif');
     const supportsWebP = accepts.includes('image/webp');
-    const isAnimated = (meta.pages || 0) > 1;
-    const isTiny = (meta.width * meta.height) < 200 * 200;
+    const isAnimated = (metadata.pages || 0) > 1;
+    const isTiny = (metadata.width * metadata.height) < 200 * 200;
 
     const decideFormat = () => {
         if (isAnimated) {
@@ -34,7 +32,7 @@ export async function getBestFormat(supported: string | null, buf: Buffer) {
         if (supportsWebP) {
             return WEBP;
         };
-        if (meta.isPalette || meta.hasAlpha) {
+        if (metadata.isPalette || metadata.hasAlpha) {
             return PNG;
         };
 
@@ -42,10 +40,10 @@ export async function getBestFormat(supported: string | null, buf: Buffer) {
     };
 
     const bestF = decideFormat();
-    if (bestF !== meta.format) {
+    if (bestF !== originalFormat) {
         return bestF;
     };
 
-    return undefined
+    return null;
 };
 

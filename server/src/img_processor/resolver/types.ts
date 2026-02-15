@@ -51,7 +51,8 @@ export type StateMap = {
     [key: string]: (state: ImageState, args: any) => void;
 };
 
-type SupportedImageFormat =
+export type SupportedImageFormat =
+    | "gif"
     | "webp"
     | "avif"
     | "png"
@@ -60,5 +61,12 @@ type SupportedImageFormat =
 export type UserSettings = {
     format: SupportedImageFormat,
     quality: number,
+};
+
+export type ResolverContext = {
+    encoding: {
+        format: SupportedImageFormat | null,
+        quality: number,
+    },
 };
 

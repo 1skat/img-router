@@ -4,7 +4,7 @@ import type { ResizeOptions } from "sharp";
 import type { ImageState } from "../state";
 import type { ResizeContent } from "../state_handlers/types";
 
-function handleBothSides(ctx: ImageState, dimensions: { width: number, height: number }, opts: ResizeType) {
+function handleBothSides(img: ImageState, dimensions: { width: number, height: number }, opts: ResizeType) {
     const out: ResizeContent = {};
     const { width, height } = dimensions;
     const { fit, bg, x, y } = opts;
@@ -17,11 +17,11 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
 
     if (x === undefined && y === undefined) {
         console.log(width, height)
-        ctx.updateState("resize", out);
+        img.updateState("resize", out);
         return;
     };
 
-    const { getCurrWidthV2: currW, getCurrHeightV2: currH } = ctx;
+    const { getCurrWidthV2: currW, getCurrHeightV2: currH } = img;
     const scale = Math.max(width / currW, height / currH); // 1000/800 and 500/350 given the ratio is 2.28
 
     // Full image size
@@ -36,8 +36,8 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
     const left = x ?? Math.round((resizedW - width) / 2);
     const top = y ?? Math.round((resizedH - height) / 2);
 
-    ctx.updateState("resize", { width: resizedW, height: resizedH }); // resize to full image
-    ctx.updateState("extract", { // resize to viewport
+    img.updateState("resize", { width: resizedW, height: resizedH }); // resize to full image
+    img.updateState("extract", { // resize to viewport
         left: left,
         top: top,
         width: width,
@@ -46,7 +46,7 @@ function handleBothSides(ctx: ImageState, dimensions: { width: number, height: n
     return;
 };
 
-function handleSingleSide(ctx: ImageState, dimensions: { width?: number, height?: number }, opts: ResizeType) {
+function handleSingleSide(img: ImageState, dimensions: { width?: number, height?: number }, opts: ResizeType) {
     const out: ResizeContent = {};
 
     const { width, height } = dimensions;
@@ -58,18 +58,18 @@ function handleSingleSide(ctx: ImageState, dimensions: { width?: number, height?
 
     if (x || y) throw new Error("no space available for padding");
 
-    const ar = ctx.getAspectRatio;
+    const ar = img.getAspectRatio;
     out.width = height ? Math.round(height * ar) : width;
     out.height = width ? Math.round(width / ar) : height;
 
-    ctx.updateState("resize", out);
+    img.updateState("resize", out);
     return;
 };
 
-export const resolveResize = (ctx: ImageState, data: ResizeType): void => {
+export const resolveResize = (ctx: TransformationResolver, img: ImageState, data: ResizeType): void => {
     const { w: width, h: height, x, y } = data;
     if (!width && !height) throw new Error("resize: at least one dimension required");
 
-    if (width && height) return handleBothSides(ctx, { width, height }, data);
-    if (width || height) return handleSingleSide(ctx, { width, height }, data);
+    if (width && height) return handleBothSides(img, { width, height }, data);
+    if (width || height) return handleSingleSide(img, { width, height }, data);
 };
