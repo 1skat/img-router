@@ -11,8 +11,9 @@ const buf = fs.readFileSync(path.join(__dirname, "./audi.png"))
 //     .rotate(90);
 
 const inst = sharp(buf)
-    .resize({ width: 400, height: 900 })
-    .rotate(90)
+    .toFormat("png", { quality: 10 })
+// .resize({ width: 400, height: 900 })
+// .rotate(90)
 
 
 inst.toFile(path.join(__dirname, "./audi-new1.png"));

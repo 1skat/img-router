@@ -1,4 +1,4 @@
-import type { FitEnum } from "sharp";
+import type { FitEnum, FormatEnum } from "sharp";
 import type { ImageState } from "./state";
 
 export type ImgStateFields = {
@@ -51,21 +51,14 @@ export type StateMap = {
     [key: string]: (state: ImageState, args: any) => void;
 };
 
-export type SupportedImageFormat =
-    | "gif"
-    | "webp"
-    | "avif"
-    | "png"
-    | "jpeg";
-
 export type UserSettings = {
-    format: SupportedImageFormat,
+    format: FormatEnum,
     quality: number,
 };
 
 export type ResolverContext = {
     encoding: {
-        format: SupportedImageFormat | null,
+        format: keyof FormatEnum,
         quality: number,
     },
 };

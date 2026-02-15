@@ -58,7 +58,7 @@ export const imageHandler = new Elysia()
         const bestFormat = await getBestFormat(clientHints.userDeviceSupportedFormats, imgMetadata);
         const resolverCtx: ResolverContext = {
             encoding: {
-                format: accountSettings.useBestFormat ? bestFormat : null,
+                format: bestFormat,
                 quality: accountSettings.defaultQuality,
             },
         };

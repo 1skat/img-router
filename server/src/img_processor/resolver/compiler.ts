@@ -110,7 +110,6 @@ export function compileTransforms(img: ImageState) {
     return sharpInstructions;
 };
 
-
 export function compileEncoding(encoding: any) {
     const sharpInstructions: SharpInstr[] = [];
     sharpInstructions.push({
@@ -118,6 +117,7 @@ export function compileEncoding(encoding: any) {
         content: [
             encoding.format,
             { quality: encoding.quality },
+
         ],
     });
 

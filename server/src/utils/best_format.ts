@@ -1,5 +1,4 @@
-import type { SupportedImageFormat } from "@/img_processor/resolver/types";
-import sharp from "sharp";
+import sharp, { type FormatEnum } from "sharp";
 
 const WEBP = "webp";
 const AVIF = "avif";
@@ -8,13 +7,14 @@ const JPEG = "jpeg";
 const GIF = "gif";
 const SVG = "svg";
 
-export async function getBestFormat(supported: string | undefined, metadata: sharp.Metadata) {
-    if (!supported || !metadata) return null;
-
-    const accepts = supported.toLowerCase();
+export async function getBestFormat(supported: string | undefined, metadata: sharp.Metadata): Promise<keyof FormatEnum> {
     const originalFormat = metadata.format;
 
-    if (originalFormat === "svg") return null;
+    if (!supported) return originalFormat;
+
+
+    const accepts = supported.toLowerCase();
+    if (originalFormat === "svg") return originalFormat;
 
     const supportsAvif = accepts.includes('image/avif');
     const supportsWebP = accepts.includes('image/webp');
@@ -44,6 +44,6 @@ export async function getBestFormat(supported: string | undefined, metadata: sha
         return bestF;
     };
 
-    return null;
+    return originalFormat;
 };
 
