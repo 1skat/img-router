@@ -92,6 +92,7 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], r
     let currBuffer = buf;
 
     for (let i = 0; i < funcChains.length; i++) {
+        console.log("Pass", i, "Current buffer:", currBuffer);
         const isLastChain = i === funcChains.length - 1;
         const sharpInst = sharp(currBuffer);
         const metadata = await sharpInst.metadata();
@@ -99,7 +100,7 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], r
         const imgState = new ImageState(metadata);
         const sharpIxs = resolver.resolveChain(imgState, funcChains[i], isLastChain);
         const inst = tranformSharpInstance(sharpIxs)(sharpInst)
-        currBuffer = inst.toBuffer();
+        currBuffer = await inst.toBuffer();
     }
 
     return currBuffer;
