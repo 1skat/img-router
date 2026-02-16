@@ -7,15 +7,6 @@ import z from "zod";
 export const accountHandlers = new Elysia()
     .use(withConfig)
     .derive(withAuth)
-    // .post("/account", async ({ cfg, apiKey, set, body }) => {
-    //     const res = await createAccount(cfg, apiKey, body.name);
-    //     set.status = 201;
-    //     return res;
-    // }, {
-    //     body: t.Object({
-    //         name: t.String({ pattern: "^[a-z0-9_-]{3,32}$" }),
-    //     })
-    // })
     .group("account/:accountName", (app) => app
         .derive(requireOwnership)
         .get("/settings", async ({ cfg, accountId, accountName }) => {

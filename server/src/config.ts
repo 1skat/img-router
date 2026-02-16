@@ -2,7 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { RedisClient, S3Client } from "bun";
 import { Redis } from "@upstash/redis";
 import { LRUCache } from 'lru-cache';
-import { AccountDocSchema, AccountSettingsDocSchema, AccountSettingsSchema, ApiKeyDocSchema, type AccountDoc, type AccountSettings, type AccountSettingsDoc, type ApiKeyDoc } from "./internal/schema";
+import { AccountDocSchema, AccountSettingsDocSchema, AccountSettingsSchema, ApiKeyDocSchema, ImageSchema, type AccountDoc, type AccountSettings, type AccountSettingsDoc, type ApiKeyDoc, type ImageDoc, type UploadImageType } from "./internal/schema";
 import type z from "zod";
 import { MongoClient } from "mongodb";
 
@@ -22,6 +22,7 @@ const db = {
     accounts: mongo.collection<AccountDoc>("accounts"),
     settings: mongo.collection<AccountSettingsDoc>("account_settings"),
     apiKeys: mongo.collection<ApiKeyDoc>("api_keys"),
+    images: mongo.collection<ImageDoc>("images"),
 
     async safeInsertAccount(data: AccountDoc) {
         const validated = AccountDocSchema.parse(data);
@@ -42,6 +43,10 @@ const db = {
     async safeInsertApiKey(data: ApiKeyDoc) {
         const validated = ApiKeyDocSchema.parse(data);
         return await db.apiKeys.insertOne(validated);
+    },
+    async safeInsertImage(data: ImageDoc) {
+        const validated = ImageSchema.parse(data);
+        return db.images.insertOne(validated);
     },
 };
 type Db = typeof db;

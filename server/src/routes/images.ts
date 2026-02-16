@@ -16,7 +16,7 @@ import { withConfig } from "@/middleware";
 import { getAccountIdFromName, getAccountSettings } from "@/internal/db";
 import type { ResolverContext } from "@/img_processor/resolver/types";
 
-export const imageHandler = new Elysia()
+export const serverImage = new Elysia()
     .use(withConfig)
     .get("/*", async ({ cfg, headers, params, set }) => {
         const rawUserPath = params["*"];
@@ -57,7 +57,7 @@ export const imageHandler = new Elysia()
         const bestFormat = await getBestFormat(clientHints.userDeviceSupportedFormats, imgMetadata);
         const resolverCtx: ResolverContext = {
             encoding: {
-                format: bestFormat,
+                format: accountSettings.useBestFormat ? bestFormat : imgMetadata.format /*original format*/,
                 quality: accountSettings.defaultQuality,
             },
         };

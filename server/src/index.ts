@@ -1,10 +1,10 @@
-import { Elysia } from 'elysia';
-import { keyHandlers } from './routes/api_keys';
-import { hostname } from 'os';
-import { cfg, connectServices } from './config';
-import { accountHandlers } from './routes/accounts';
-import { imageHandler } from './routes/images';
-import { handlerServerError } from './middleware';
+import Elysia from "elysia";
+import { connectServices } from "./config";
+import { handlerServerError } from "./middleware";
+import { serverImage } from "./routes/images";
+import { keyHandlers } from "./routes/api/keys";
+import { accountHandlers } from "./routes/api/accounts";
+import { imageHandlers } from "./routes/api/images";
 
 await connectServices();
 const imageApp = new Elysia()
@@ -28,12 +28,14 @@ const imageApp = new Elysia()
             'Downlink'
         ].join(', ');
     })
-    .use(imageHandler)
+    .use(serverImage);
 
 const apiApp = new Elysia({ prefix: "/api" })
     .onError(handlerServerError)
     .use(keyHandlers)
-    .use(accountHandlers);
+    .use(accountHandlers)
+    .use(imageHandlers);
+
 
 imageApp.listen({
     hostname: "0.0.0.0",

@@ -4,7 +4,6 @@ import { AccountSettingsSchema, type AccountSettings } from "./schema";
 import { BadRequestError, UserForbiddenError } from "@/errors";
 import { tryCatchAsync } from "@/utils/try-catch";
 import crypto from 'crypto';
-import { keyHandlers } from "@/routes/api_keys";
 import { generateAccountId, generateApiKey } from "./auth";
 
 export async function getAccountSettings(cfg: ApiConfig, accountId: string) {
@@ -106,4 +105,6 @@ export async function getAccountIdFromName(cfg: ApiConfig, accountName: string):
     return account.id;
 };
 
+export async function uploadImage(cfg: ApiConfig) {
 
+};

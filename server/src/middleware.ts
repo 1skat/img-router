@@ -2,7 +2,6 @@ import { cfg, type ApiConfig } from "./config";
 import { tryCatchAsync } from "./utils/try-catch";
 import Elysia, { NotFoundError, type ErrorHandler } from 'elysia';
 import { BadRequestError, UserForbiddenError, UserNotAuthenticatedError } from "./errors";
-import { accountHandlers } from "./routes/accounts";
 import { getAccountIdFromName, hashApiKey } from "./internal/db";
 
 async function verifyApiKey(cfg: ApiConfig, apiKey: string) {

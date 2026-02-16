@@ -7,15 +7,15 @@ import { compileEncoding, compileTransforms, type SharpInstr } from "./compiler"
 import type { AccountSettings } from "@/internal/schema";
 import type { ResolverContext } from "./types";
 
-export function buildTransfromInstance(chain: any) {
-    return (instance: any) => {
-        for (const { method, content } of chain) {
-            if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
-            instance = instance[method](...(content));
-        }
-        return instance;
-    };
-};
+// export function buildTransfromInstance(chain: any) {
+//     return (instance: any) => {
+//         for (const { method, content } of chain) {
+//             if (typeof instance[method] !== "function") throw new Error(`Unknown Sharp instruction: ${method}`);
+//             instance = instance[method](...(content));
+//         }
+//         return instance;
+//     };
+// };
 
 export function tranformSharpInstance(sharpInstructions: SharpInstr[]) {
     return (instance: any) => {
@@ -41,7 +41,7 @@ export async function resolveSharpInstructions(buf: Buffer, funcChains: any[], r
         const sharpIxs = resolver.resolveChain(imgState, funcChains[i], isLastChain);
         const inst = tranformSharpInstance(sharpIxs)(sharpInst)
         currBuffer = await inst.toBuffer();
-    }
+    };
 
     return currBuffer;
 };
@@ -62,7 +62,7 @@ export class TransformationResolver {
     resolveChain(img: ImageState, chain: typeof SharpInsructionMap, isLastChain: boolean) {
         for (const [method, content] of Object.entries(chain)) {
             const handler = SharpInsructionMap[method as keyof typeof SharpInsructionMap];
-            if (handler) handler(this /* global ctx */, img /* state */, content);
+            if (handler) handler(this /* global ctx */, img /* image state */, content);
         };
 
         const transfomIxs = compileTransforms(img);

@@ -31,8 +31,23 @@ export const AccountSettingsDocSchema = z.object({
 });
 export type AccountSettingsDoc = z.infer<typeof AccountSettingsDocSchema>;
 
+export const ImageSchema = z.object({
+    accountId: z.string(),
+    path: z.string(),
+    // privacy
+    isPrivate: z.boolean().default(false),
+    transformations: z.string().nullable().default(null),
+    // metadata
+    fileSize: z.number(),
+    // mimeType: z.string(),
+    width: z.number(),
+    height: z.number(),
+    format: z.string(),
 
+    folder: z.string().default("/"),
+    fileName: z.string(),
 
-
-
-
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+export type ImageDoc = z.infer<typeof ImageSchema>;
