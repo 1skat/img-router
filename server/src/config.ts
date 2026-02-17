@@ -48,6 +48,22 @@ const db = {
         const validated = ImageSchema.parse(data);
         return db.images.insertOne(validated);
     },
+    async safeUpsertImage(data: Omit<ImageDoc, "createdAt" | "updatedAt">) {
+        const { createdAt, ...rest } = ImageSchema.parse({
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        await this.images.updateOne(
+            { accountId: data.accountId, path: data.path },
+            {
+                $set: rest,
+                $setOnInsert: { createdAt },
+            },
+            { upsert: true },
+        );
+    },
 };
 type Db = typeof db;
 

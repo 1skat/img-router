@@ -36,7 +36,6 @@ const apiApp = new Elysia({ prefix: "/api" })
     .use(accountHandlers)
     .use(imageHandlers);
 
-
 imageApp.listen({
     hostname: "0.0.0.0",
     port: 3001
