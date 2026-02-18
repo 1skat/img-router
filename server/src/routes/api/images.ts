@@ -1,6 +1,7 @@
 import { BadRequestError } from "@/errors";
 import { requireOwnership, withAuth, withConfig } from "@/middleware";
-import Elysia from "elysia";
+import { createHmac } from "crypto";
+import Elysia, { NotFoundError } from "elysia";
 import sharp from "sharp";
 import z from "zod";
 
@@ -25,30 +26,20 @@ export const imageHandlers = new Elysia() // e.g /api/danny004/upload
             const normalizedFolder = folder.replace(/^\/+|\/+$/g, '');
             const s3Key = `${accountId}/${normalizedFolder}/${fileName}`;
 
-            try {
-                await cfg.s3.write(s3Key, buf);
-            } catch (err) {
-                console.error('S3 upload FAILED:', err);
-                throw err;
-            }
+            await cfg.s3.write(s3Key, buf);
 
-            try {
-                await cfg.db.safeUpsertImage({
-                    accountId: accountId,
-                    path: s3Key,
-                    isPrivate: isPrivate,
-                    transformations: transformations ?? null,
-                    fileSize: metadata.size ?? buf.byteLength,
-                    width: metadata.width,
-                    height: metadata.height,
-                    format: metadata.format,
-                    folder: folder,
-                    fileName: fileName,
-                });
-            } catch (err) {
-                console.error('db upsert FAILED:', err);
-                throw err;
-            };
+            await cfg.db.safeUpsertImage({
+                accountId: accountId,
+                path: s3Key,
+                isPrivate: isPrivate,
+                transformations: transformations ?? null,
+                fileSize: metadata.size ?? buf.byteLength,
+                width: metadata.width,
+                height: metadata.height,
+                format: metadata.format,
+                folder: folder,
+                fileName: fileName,
+            });
 
             return { url: `${accountName}/${normalizedFolder}/${fileName}` };
         }, {
@@ -69,6 +60,47 @@ export const imageHandlers = new Elysia() // e.g /api/danny004/upload
             await cfg.db.images.deleteOne({ accountId, path: s3Key });
 
             return { success: true };
+        })
+        .patch("/*", async ({ cfg, accountId, accountName, params, body }) => {
+            const assetPath = params["*"];
+            const s3Key = `${accountId}/${assetPath}`;
+            const { isPrivate, transformations } = body;
+            console.log("patch:", isPrivate, transformations);
+            // todo: validate transformations
+
+            const updatedSet = {
+                isPrivate: isPrivate,
+                ...(transformations && { transformations }),
+                updatedAt: new Date(),
+            };
+
+            const result = await cfg.db.images.updateOne(
+                { accountId, path: s3Key },
+                {
+                    $set: updatedSet,
+                },
+            );
+
+            if (result.matchedCount === 0) {
+                throw new NotFoundError("Image not found");
+            };
+
+            const publicPath = `${accountName}/${assetPath}`;
+            if (isPrivate) {
+                const signature = createHmac("sha256", cfg.jwtSecret)
+                    .update(`${s3Key}`)
+                    .digest("hex")
+                    .slice(0, 40);
+
+                return { signedUrl: `${publicPath}?sig=${signature}` };
+            };
+
+            return { url: publicPath };
+        }, {
+            body: z.object({
+                isPrivate: z.boolean(),
+                transformations: z.string().optional(),
+            })
         })
     );
 

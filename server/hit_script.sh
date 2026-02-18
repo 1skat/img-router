@@ -18,6 +18,14 @@ case "$1" in
       -H "x-api-key: sk_-BnahpROcedLUHVUNALBoljifhSK46OxJieKBRBr8zI" \
     ;;
       
+  patch)
+    echo "req PATCH"
+    curl -X PATCH http://localhost:3002/api/danny012/assets/sportscars/rs7.jpg \
+      -H "x-api-key: sk_-BnahpROcedLUHVUNALBoljifhSK46OxJieKBRBr8zI" \
+      -H "Content-Type: application/json" \
+      -d '{"isPrivate":true,"transformations":"zoom(1.5)"}'
+    ;; 
+    
   *)
     exit 1
   ;;

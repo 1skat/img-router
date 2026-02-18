@@ -15,6 +15,7 @@ const s3Endpoint = envOrThrow("S3_ENDPOINT");
 const s3Region = envOrThrow("S3_REGION");
 const s3AccessKeyId = envOrThrow("ACCESS_KEY_ID");
 const s3SecretAccessKey = envOrThrow("SECRET_ACCESS_KEY");
+const jwtSecret = envOrThrow("JWT_SECRET");
 
 const mongoClient = new MongoClient(pathToMongo);
 const mongo = mongoClient.db("img_db");
@@ -119,6 +120,7 @@ export type ApiConfig = {
     s3Endpoint: string;
     s3Region: string;
     bunEnv: "production" | "development";
+    jwtSecret: string,
     // apiRL: Ratelimit,
 };
 
@@ -133,6 +135,7 @@ export const cfg: ApiConfig = {
     s3Endpoint,
     s3Region,
     bunEnv: "development",
+    jwtSecret,
 };
 
 function envOrThrow(key: string) {
